@@ -65,6 +65,9 @@ $route['get_partdag_data'] = 'Api/LocationController/getPartdagData';
 $route['get_land_revenue'] = 'Api/LocationController/getLandRevenue';
 $route['submit_part_dag'] = 'Api/PartDagController/submitPartDag';
 $route['get_tenants'] = 'Api/PartDagController/getTenants';
+$route['submit_possessor'] = 'Api/PartDagController/submitPossessor';
+$route['delete_possessor'] = 'Api/PartDagController/deletePossessor';
+$route['update_part_dag'] = 'Api/PartDagController/updatePartDag';
 
 // // Jamabandi
 // $route['set-location-for-jamabandi'] = 'JamabandiController/setJamabandiLocation';
