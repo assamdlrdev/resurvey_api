@@ -774,7 +774,30 @@ class LocationController extends CI_Controller
 
         $this->dbswitch($dist_code);
 
-        $originalDagForEntry = $this->db->query("SELECT * FROM chitha_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no])->row();
+
+        $originalDagForEntry = $this->db->query("
+            SELECT cb.*, pc.patta_type, lc.land_type 
+            FROM chitha_basic cb
+            LEFT JOIN patta_code pc 
+                ON cb.patta_type_code = pc.type_code
+            LEFT JOIN landclass_code lc 
+                ON cb.land_class_code = lc.class_code
+            WHERE cb.dist_code = ?
+            AND cb.subdiv_code = ?
+            AND cb.cir_code = ?
+            AND cb.mouza_pargona_code = ?
+            AND cb.lot_no = ?
+            AND cb.vill_townprt_code = ?
+            AND cb.dag_no = ?
+        ", [
+            $dist_code, 
+            $subdiv_code, 
+            $cir_code, 
+            $mouza_pargona_code, 
+            $lot_no, 
+            $vill_townprt_code, 
+            $dag_no
+        ])->row();
 
         if(empty($originalDagForEntry)) {
             $response = [
@@ -893,7 +916,7 @@ class LocationController extends CI_Controller
         }
 
         // pattadars
-        $pattadars = $this->db->query("SELECT cdp.*, cp.pdar_name, cp.pdar_father FROM chitha_dag_pattadar cdp, chitha_pattadar cp WHERE cdp.dist_code=cp.dist_code AND cdp.subdiv_code=cp.subdiv_code AND cdp.cir_code=cp.cir_code AND cdp.mouza_pargona_code=cp.mouza_pargona_code AND cdp.lot_no=cp.lot_no AND cdp.vill_townprt_code=cp.vill_townprt_code AND cdp.patta_no=cp.patta_no AND cdp.patta_type_code=cp.patta_type_code AND cdp.pdar_id=cp.pdar_id AND cdp.dist_code=? AND cdp.subdiv_code=? AND cdp.cir_code=? AND cdp.mouza_pargona_code=? AND cdp.lot_no=? AND cdp.vill_townprt_code=? AND cdp.dag_no=? AND cdp.patta_no=? AND cdp.patta_type_code=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $originalDagForEntry->patta_no, $originalDagForEntry->patta_type_code])->result();
+        $pattadars = $this->db->query("SELECT cdp.*, cp.pdar_name, cp.pdar_father,cp.pdar_add1,cp.pdar_add2 FROM chitha_dag_pattadar cdp, chitha_pattadar cp WHERE cdp.dist_code=cp.dist_code AND cdp.subdiv_code=cp.subdiv_code AND cdp.cir_code=cp.cir_code AND cdp.mouza_pargona_code=cp.mouza_pargona_code AND cdp.lot_no=cp.lot_no AND cdp.vill_townprt_code=cp.vill_townprt_code AND cdp.patta_no=cp.patta_no AND cdp.patta_type_code=cp.patta_type_code AND cdp.pdar_id=cp.pdar_id AND cdp.dist_code=? AND cdp.subdiv_code=? AND cdp.cir_code=? AND cdp.mouza_pargona_code=? AND cdp.lot_no=? AND cdp.vill_townprt_code=? AND cdp.dag_no=? AND cdp.patta_no=? AND cdp.patta_type_code=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $originalDagForEntry->patta_no, $originalDagForEntry->patta_type_code])->result();
 
         $pdarArray = [];
 
@@ -905,6 +928,10 @@ class LocationController extends CI_Controller
                 $row = [];
                 $row['value'] = $value;
                 $row['label'] = $label;
+                $row['pdar_name'] = $pattadar->pdar_name;
+                $row['pdar_father'] = $pattadar->pdar_father;
+                $row['pdar_add1'] = $pattadar->pdar_add1;
+                $row['pdar_add2'] = $pattadar->pdar_add2;
                 $pdarArray[] = $row;
             }
         }
