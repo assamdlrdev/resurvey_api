@@ -844,7 +844,10 @@ class LocationController extends CI_Controller
                 $dag_area_sqmtr = $partDag->plotArea;
                 $from_bhunaksha = 1;
                 //check in chitha whether created
-                $chithaPartDag = $this->db->query("SELECT * FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=? AND survey_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->row();
+                $chithaPartDag = $this->db->query("SELECT cbsd.*, lc.land_type, pc.patta_type FROM chitha_basic_splitted_dags cbsd 
+                LEFT JOIN landclass_code lc ON cbsd.land_class_code = lc.class_code
+                LEFT JOIN patta_code pc ON cbsd.patta_type_code = pc.type_code
+                WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=? AND survey_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->row();
 
                 if(!empty($chithaPartDag)) {
                     $dag_area_sqmtr = ($chithaPartDag->dag_area_sqmtr && $chithaPartDag->dag_area_sqmtr != '') ? $chithaPartDag->dag_area_sqmtr : $dag_area_sqmtr;
@@ -858,13 +861,19 @@ class LocationController extends CI_Controller
                 $row['id'] = $part_dag . '-' . $from_bhunaksha;
                 $row['from_bhunaksha'] = $from_bhunaksha;
                 $row['dag_area_sqmtr'] = $dag_area_sqmtr;
+                $row['old_dag_no'] = $chithaPartDag ? $chithaPartDag->dag_no : '';
+                $row['current_land_class'] = $chithaPartDag->land_type ?? '';
+                $row['patta_type'] = $chithaPartDag->patta_type ?? '';
+                $row['patta_no'] = $chithaPartDag->patta_no ?? '';
 
                 $partDagsForEntry[] = $row;
                 $checkPartDags[] = $part_dag;
             }
         }
 
-        $addedPartDags = $this->db->query("SELECT * FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no])->result();
+        $addedPartDags = $this->db->query("SELECT cbsd.*, lc.land_type, pc.patta_type FROM chitha_basic_splitted_dags cbsd 
+                LEFT JOIN landclass_code lc ON cbsd.land_class_code = lc.class_code
+                LEFT JOIN patta_code pc ON cbsd.patta_type_code = pc.type_code WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no])->result();
 
         if(!empty($addedPartDags)) {
             foreach ($addedPartDags as $addedPartDag) {
@@ -875,7 +884,10 @@ class LocationController extends CI_Controller
                     $row['id'] = $addedPartDag->survey_no . '-0';
                     $row['from_bhunaksha'] = 0;
                     $row['dag_area_sqmtr'] = $addedPartDag->dag_area_sqmtr;
-
+                    $row['old_dag_no'] = $addedPartDag ? $addedPartDag->dag_no : '';
+                    $row['current_land_class'] = $addedPartDag->land_type ?? '';
+                    $row['patta_type'] = $addedPartDag->patta_type ?? '';
+                    $row['patta_no'] = $addedPartDag->patta_no ?? '';
 
                     $partDagsForEntry[] = $row;
                 }
@@ -936,6 +948,11 @@ class LocationController extends CI_Controller
             }
         }
 
+        $revenue_data = $this->calcLandRevenue($originalDagForEntry,$locationArr);
+        if($revenue_data){
+            $originalDagForEntry->dag_revenue = $revenue_data->dag_revenue;
+            $originalDagForEntry->dag_local_tax = $revenue_data->dag_local_tax;
+        }
 
         $resp = [];
         $resp['dharitree_data'] = $originalDagForEntry;
@@ -955,6 +972,80 @@ class LocationController extends CI_Controller
         return;
     }
 
+    private function calcLandRevenue($dag_data, $locationArr) {
+        $data['dist_code'] = $locationArr[0];
+        $data['subdiv_code'] = $locationArr[1];
+        $data['cir_code'] = $locationArr[2];
+        $data['mouza_pargona_code'] = $locationArr[3];
+        $data['lot_no'] = $locationArr[4];
+        $data['vill_townprt_code'] = $locationArr[5];
+        $data['land_class_code'] = $dag_data->land_class_code;
+        
+        $dag_no = $dag_data->dag_no;
+        $bigha = $dag_data->dag_area_b;
+        $katha = $dag_data->dag_area_k;
+        $lessaChatak = $dag_data->dag_area_lc;
+        $ganda = $dag_data->dag_area_g;
+
+        if(in_array($data['dist_code'], BARAK_VALLEY)) {
+            $eq_bigha = $bigha + ($katha / 20) + ($lessaChatak / 320) + ($ganda / 6400);
+        }
+        else {
+            $eq_bigha = $bigha + ($katha / 5) + ($lessaChatak / 100);
+        }
+
+        $url = LANDHUB_BASE_URL . "/getRevenueLandClassCodeWise";
+        $method = 'POST';
+        $data['apikey'] = "chithaentry_resurvey";
+        $api_output = callApiV2($url, $method, $data);
+
+        if (!$api_output) {
+            log_message("error", 'LAND HUB API FAIL');
+            $response = [
+                'status' => 'n',
+                'msg' => 'API FAIL!' 
+            ];
+            $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
+            echo json_encode($response);
+            return;
+        }
+        $response = json_decode($api_output);
+        $revenue_details = $response->data;
+
+        $this->dbswitch($data['dist_code']);
+        $location = $this->db->query("SELECT rural_urban FROM location WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=?", [$data['dist_code'], $data['subdiv_code'], $data['cir_code'], $data['mouza_pargona_code'], $data['lot_no'], $data['vill_townprt_code']])->row();
+        if($location->rural_urban == 'U') {
+            if(empty($revenue_details) || $revenue_details->ruralurban != 'Urban') {
+                $response = [
+                    'status' => 'n',
+                    'msg' => 'Revenue Land Class Wise Does not exist for this land class!' 
+                ];
+                $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
+                echo json_encode($response);
+                return;
+            }
+            
+            $revenue_details->dag_revenue = $eq_bigha * $revenue_details->dag_revenue_perbigha;
+            $revenue_details->dag_local_tax = $eq_bigha * $revenue_details->dag_local_tax_min;
+
+        }
+        else if ($location->rural_urban == 'R') {
+            if(empty($revenue_details) || $revenue_details->ruralurban != 'Rural') {
+                $response = [
+                    'status' => 'n',
+                    'msg' => 'Revenue Land Class Wise Does not exist for this land class!' 
+                ];
+                $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
+                echo json_encode($response);
+                return;
+            }
+
+            $revenue_details->dag_revenue = $eq_bigha * $revenue_details->dag_revenue_perbigha;
+            $revenue_details->dag_local_tax = $eq_bigha * $revenue_details->dag_local_tax_min;
+
+        }
+        return $revenue_details;
+    }
     public function getPartdagData() {
         $this->load->helper('cookie');
         $authToken = $this->input->cookie('jwt_authorization', TRUE);
