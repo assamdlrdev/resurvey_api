@@ -1,0 +1,28 @@
+stages:
+  - deploy_dev
+  - deploy_stage
+  - deploy_prod
+
+deploy_prod:
+  stage: deploy_prod
+  script:
+    - echo "Success"
+  only:
+    - main
+
+deploy_stage:
+  stage: deploy_stage
+  script:
+    - echo "Deploying to stage server...!!"
+    - ssh -v opc@172.16.3.214 'sudo chown -R opc:opc /var/www/html/chithaapi && cd /var/www/html/chithaapi && git checkout stage && git reset --hard origin/stage && git pull origin stage && sudo chown -R apache:apache /var/www/html/chithaapi'
+    - echo "Deployment successful for stage!!!!!"
+  only:
+    - stage
+
+deploy_dev:
+  stage: deploy_dev
+  script:
+    - echo "Success"
+  only:
+    - dev
+
