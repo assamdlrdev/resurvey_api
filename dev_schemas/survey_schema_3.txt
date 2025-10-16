@@ -1,0 +1,65 @@
+-- DATABASE: locmaster
+
+alter table surveyor_villages add column surveyor_village_revert_id bigint;
+
+CREATE TABLE IF NOT EXISTS public.surveyor_village_reverts
+(
+    id bigserial,
+    surveyor_village_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    reason text COLLATE pg_catalog."default",
+    status smallint NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revert_to character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT surveyor_village_revert_logs_pkey PRIMARY KEY (id)
+)
+
+alter table survey_daily_progress_reports add column bhunaksha_ref_id varchar(255)
+
+CREATE TABLE IF NOT EXISTS public.supervisor_circle_logs
+(
+    id bigserial,
+    supervisor_circle_id bigint NOT NULL,
+    batch_id character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    supervisor_code character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    created_by_role character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT supervisor_circle_logs_pkey PRIMARY KEY (id)
+)
+
+CREATE TABLE IF NOT EXISTS public.surveyor_village_logs
+(
+    id bigserial,
+    surveyor_village_id bigint NOT NULL,
+    batch_id character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    team_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    surveyor_code character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default",
+    created_by_role character varying(10) COLLATE pg_catalog."default",
+    apprx_area numeric,
+    final_report_uploaded smallint,
+    surveyor_village_revert_id bigint,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT surveyor_village_logs_pkey PRIMARY KEY (id)
+)

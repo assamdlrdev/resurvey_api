@@ -1,0 +1,75 @@
+Rename mutationmodel.php to Mutationmodel.php
+Rename pattamodel.php to Pattamodel.php
+tables
+1.chitha_dag_all_flag_details
+2.chitha_dag_all_flag_details_final
+3.settlement_premium_sub_category
+4.dag_flag_master
+5.settlement_premium_category
+6.settlement_premium_area
+
+
+
+-- Table: public.chitha_dag_all_flag_details
+
+-- DROP TABLE IF EXISTS public.chitha_dag_all_flag_details;
+
+CREATE TABLE IF NOT EXISTS public.chitha_dag_all_flag_details
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    dag_no character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    area_flag integer,
+    is_eroded integer,
+    is_landclassless integer,
+    is_sad integer,
+    user_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    creation_date_time timestamp without time zone NOT NULL,
+    updation_date_time timestamp without time zone NOT NULL,
+    status character(1) COLLATE pg_catalog."default",
+    uuid bigint,
+    remarks text COLLATE pg_catalog."default",
+    is_sar integer DEFAULT 0,
+    wet_land integer DEFAULT 0,
+    CONSTRAINT chitha_dag_all_flag_details_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no)
+)
+
+
+-- Table: public.chitha_dag_all_flag_details_final
+
+-- DROP TABLE IF EXISTS public.chitha_dag_all_flag_details_final;
+
+CREATE TABLE IF NOT EXISTS public.chitha_dag_all_flag_details_final
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    dag_no character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    area_flag integer,
+    is_eroded integer,
+    is_landclassless integer,
+    is_sad integer,
+    user_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    creation_date_time timestamp without time zone NOT NULL,
+    updation_date_time timestamp without time zone NOT NULL,
+    status character(1) COLLATE pg_catalog."default",
+    uuid bigint,
+    remarks text COLLATE pg_catalog."default",
+    is_sar integer DEFAULT 0,
+    wet_land integer DEFAULT 0,
+    CONSTRAINT chitha_dag_all_flag_details_final_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no)
+)
+
+
+
+
+table addition completed of
+cdhemaji,clakhimpur,chailakandi
+

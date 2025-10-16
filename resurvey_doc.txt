@@ -1,0 +1,168 @@
+1.new tables - chitha_basic_splitted_dags,resurvey_villages,splitted_dags_possessors
+
+
+add these cols to chitha_tenant.
+
+ALTER TABLE public.chitha_tenant
+    ADD COLUMN duration character varying(100) COLLATE pg_catalog."default",
+    ADD COLUMN paid_cash_kind text COLLATE pg_catalog."default",
+    ADD COLUMN payable_cash_kind text COLLATE pg_catalog."default",
+    ADD COLUMN special_conditions text COLLATE pg_catalog."default",
+    ADD COLUMN tenant_status text COLLATE pg_catalog."default",
+    ADD COLUMN remarks text COLLATE pg_catalog."default",
+    ADD COLUMN bigha smallint,
+    ADD COLUMN katha smallint,
+    ADD COLUMN lessa numeric,
+    ADD COLUMN ganda numeric,
+    ADD COLUMN kranti smallint,
+    ADD COLUMN uuid bigint,
+    ADD COLUMN updated_date timestamp without time zone,
+    ADD COLUMN old_khatian_no integer,
+    ADD COLUMN p_flag character varying(1) COLLATE pg_catalog."default";
+
+
+ALTER TABLE public.splitted_dags_possessors
+    ADD COLUMN gender character varying(10),
+    ADD COLUMN dob date
+
+ALTER TABLE public.splitted_dags_possessors
+    ADD COLUMN mobile_no VARCHAR(10),
+    ADD COLUMN aadhaar_no CHAR(12)
+
+ALTER TABLE public.chitha_dag_pattadar
+    ADD COLUMN uuid bigint,
+    ADD COLUMN created_on timestamp without time zone,
+    ADD COLUMN updated_on timestamp without time zone,
+    ADD COLUMN dag_no_int bigint
+
+ALTER TABLE public.chitha_pattadar
+    ADD COLUMN pdar_name_eng character varying(100),
+    ADD COLUMN pdar_guard_eng character varying(100),
+    ADD COLUMN uuid bigint,
+    ADD COLUMN created_on timestamp without time zone,
+    ADD COLUMN updated_on timestamp without time zone,
+    ADD COLUMN mask_id character varying(4),
+    ADD COLUMN pdar_caste character varying(5),
+    ADD COLUMN dob date,
+    ADD COLUMN pdar_occupation character varying(50),
+    ADD COLUMN marital_status character varying(200)
+
+
+ALTER TABLE public.chitha_basic
+    ADD COLUMN alpha_dag integer,
+    ADD COLUMN alpha_patta integer
+
+ALTER TABLE public.chitha_basic
+    ADD COLUMN zonal_value numeric,
+    ADD COLUMN police_station character varying(300),
+    ADD COLUMN revenue_paid_upto character varying(20),
+    ADD COLUMN block_code character varying(20),
+    ADD COLUMN gp_code character varying(20)
+
+
+
+
+-- Table: public.splitted_dags_possessors
+
+-- DROP TABLE IF EXISTS public.splitted_dags_possessors;
+
+CREATE TABLE IF NOT EXISTS public.splitted_dags_possessors
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    old_dag_no character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    part_dag character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    possessor_id integer NOT NULL,
+    name character varying(100) COLLATE pg_catalog."default",
+    guard_name character varying(100) COLLATE pg_catalog."default",
+    guard_relation character(1) COLLATE pg_catalog."default",
+    pattadar_relation character(1) COLLATE pg_catalog."default",
+    mode_of_acquisition character varying(10) COLLATE pg_catalog."default",
+    mut_possessor_name character varying(100) COLLATE pg_catalog."default",
+    mut_possessor_father_name character varying(100) COLLATE pg_catalog."default",
+    mut_possessor_address text COLLATE pg_catalog."default",
+    user_code character varying(5) COLLATE pg_catalog."default",
+    gender character varying(10) COLLATE pg_catalog."default",
+    dob date,
+    email character varying(255),
+    photo_path character varying(255),
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    remarks text COLLATE pg_catalog."default",
+    CONSTRAINT splitted_dags_possessors_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, old_dag_no, part_dag, possessor_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.splitted_dags_possessors
+    OWNER to postgres;
+
+
+//new user activity log table schema
+CREATE TABLE IF NOT EXISTS public.user_activity_logs (
+    id BIGSERIAL PRIMARY KEY,
+    user_code VARCHAR(5) NOT NULL,
+    activity TEXT NOT NULL,
+    action_type VARCHAR(50),            -- e.g. LOGIN, UPDATE, DELETE
+    ip_address INET,                    -- IP address of the user
+    user_agent TEXT,                    -- browser / device details
+    metadata JSONB,                     -- extra info (optional)
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+
+
+ALTER TABLE splitted_dags_possessors
+ADD COLUMN mobile_no VARCHAR(10),
+ADD COLUMN aadhaar_no CHAR(12);
+
+
+
+
+
+//add col to splitted_dags_possessors
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN possessor_u_id VARCHAR(40);
+
+//ownership documents
+
+CREATE TABLE IF NOT EXISTS public.ownership_documents (
+    id BIGSERIAL PRIMARY KEY,
+
+    possessor_u_id VARCHAR(40) NOT NULL,
+
+    document_name VARCHAR(150) NOT NULL,      -- e.g. Sale Deed, Gift Deed, Will, Court Order
+    document_no VARCHAR(100) NOT NULL,        -- Document/Deed number
+    issuing_authority VARCHAR(200),           -- Issuing Authority name
+    issuing_address TEXT,                     -- Issuing Authority address
+    document_issue_date DATE,                 -- Date of issue/registration
+
+    file_path TEXT,                           -- Path to uploaded file (PDF/JPG)
+    file_type VARCHAR(20),                    -- MIME type (pdf, jpg, png)
+    file_size BIGINT,                         -- File size in bytes
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+
+ALTER TABLE chitha_basic_splitted_dags
+ADD COLUMN bhunaksha_survey_no VARCHAR(10);
+
+
+ALTER TABLE chitha_basic_splitted_dags
+ADD COLUMN updated_by VARCHAR(10);
+
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN updated_by VARCHAR(10);
+
+ALTER TABLE public.ownership_documents
+ADD COLUMN updated_by VARCHAR(10);
+
+ALTER TABLE chitha_basic_splitted_dags
+ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
+

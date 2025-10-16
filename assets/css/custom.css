@@ -1,0 +1,6 @@
+label.required:after,p.required:after{
+    content: '*';
+    color:red;
+    vertical-align: middle;
+    font-weight: bold;
+}
