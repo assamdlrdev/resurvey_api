@@ -1,0 +1,22 @@
+-- DATABASE: locmaster
+
+-- truncate table survey_daily_progress_reports;
+
+alter table survey_daily_progress_reports add column file_ext varchar(5);
+alter table survey_daily_progress_reports add column team_member_id bigint NOT NULL;
+
+alter table surveyor_villages add column apprx_area numeric;
+alter table surveyor_villages add column final_report_uploaded smallint default (0);
+
+CREATE TABLE IF NOT EXISTS public.surveyor_village_final_reports
+(
+    id bigserial,
+    surveyor_village_id bigint NOT NULL,
+    file_name character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    file_ext character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    file_identifier character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT surveyor_village_final_reports_pkey PRIMARY KEY (id)
+)

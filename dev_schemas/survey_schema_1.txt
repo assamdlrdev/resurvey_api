@@ -1,0 +1,143 @@
+
+
+CREATE TABLE IF NOT EXISTS public.user_instruments
+(
+    id bigserial,
+    user_code character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    serial_no character varying(150) COLLATE pg_catalog."default",
+    controller_no character varying(150) COLLATE pg_catalog."default",
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    assigned_date timestamp without time zone NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    slug character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    note text COLLATE pg_catalog."default",
+    CONSTRAINT user_instruments_pkey PRIMARY KEY (id)
+)
+
+
+CREATE TABLE IF NOT EXISTS public.user_instrument_logs
+(
+    id bigserial,
+    user_instrument_id bigint NOT NULL,
+    serial_no character varying(150) COLLATE pg_catalog."default",
+    controller_no character varying(150) COLLATE pg_catalog."default",
+    assigned_date timestamp without time zone NOT NULL,
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    slug character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    note text COLLATE pg_catalog."default",
+    user_code character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT user_instrument_logs_pkey PRIMARY KEY (id)
+)
+
+
+CREATE TABLE IF NOT EXISTS public.teams
+(
+    id bigserial,
+    name character varying(150) COLLATE pg_catalog."default" NOT NULL,
+    slug character varying COLLATE pg_catalog."default" NOT NULL,
+    created_by character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT teams_pkey PRIMARY KEY (id)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.team_members
+(
+    id bigserial,
+    team_id bigint NOT NULL,
+    user_code character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT team_members_pkey PRIMARY KEY (id)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.team_member_logs
+(
+    id bigserial,
+    team_log_id bigint NOT NULL,
+    user_code character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT team_member_logs_pkey PRIMARY KEY (id)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.team_logs
+(
+    id bigserial,
+    team_id bigint NOT NULL,
+    name character varying(150) COLLATE pg_catalog."default" NOT NULL,
+    slug character varying COLLATE pg_catalog."default" NOT NULL,
+    created_by character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT teamlogs_pkey PRIMARY KEY (id)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.surveyor_villages
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    surveyor_code character varying(45) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_at timestamp without time zone,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default",
+    created_by_role character varying(10) COLLATE pg_catalog."default",
+    team_id bigint NOT NULL,
+    id bigserial,
+    CONSTRAINT surveyor_villages_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, surveyor_code)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.survey_daily_progress_reports
+(
+    id bigserial,
+    team_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(200) COLLATE pg_catalog."default",
+    surveyor_code character varying(15) COLLATE pg_catalog."default",
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    land_parcel_survey numeric NOT NULL,
+    area_surveyed numeric NOT NULL,
+    is_freezed smallint NOT NULL DEFAULT 0,
+    report_date date NOT NULL,
+    CONSTRAINT survey_daily_progress_reports_pkey PRIMARY KEY (id)
+)
+
+
+
+CREATE TABLE IF NOT EXISTS public.supervisor_circles
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    supervisor_code character varying(45) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default",
+    created_by_role character varying(10) COLLATE pg_catalog."default",
+    id bigserial,
+    CONSTRAINT supervisor_circles_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, supervisor_code)
+)

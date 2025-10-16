@@ -1,0 +1,90 @@
+-- DB locmaster
+
+CREATE TABLE IF NOT EXISTS public.gisassistant_circles
+(
+    id bigserial,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    gisassistant_code character varying(45) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    created_by_role character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT gisassistant_circles_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.gisassistant_circle_logs
+(
+    id bigserial,
+	batch_id character varying(200),
+	gisassistant_circle_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    gisassistant_code character varying(45) COLLATE pg_catalog."default" NOT NULL,
+    uuid bigint,
+    created_by_usercode character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    created_by_role character varying(10) COLLATE pg_catalog."default" NOT NULL,
+    deleted_by character varying(20),
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT gisassistant_circle_logs_pkey PRIMARY KEY (id)
+);
+
+
+CREATE TABLE IF NOT EXISTS public.gisassistant_qaqc_reports
+(
+    id bigserial,
+    survey_daily_progress_report_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(200) COLLATE pg_catalog."default",
+    user_code character varying(15) COLLATE pg_catalog."default",
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    land_parcel_survey numeric NOT NULL,
+    area_surveyed numeric NOT NULL,
+    is_freezed smallint NOT NULL DEFAULT 0,
+    report_date date NOT NULL,
+    file_ext character varying(5) COLLATE pg_catalog."default",
+    bhunaksha_ref_id character varying(255) COLLATE pg_catalog."default",
+    updated_by character varying(15) COLLATE pg_catalog."default",
+    CONSTRAINT gisassistant_qaqc_reports_pkey PRIMARY KEY (id)
+)
+
+
+CREATE TABLE IF NOT EXISTS public.gisassistant_qaqc_report_logs
+(
+    id bigserial,
+    gisassistant_qaqc_report_id bigint NOT NULL,
+    survey_daily_progress_report_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(200) COLLATE pg_catalog."default",
+    user_code character varying(15) COLLATE pg_catalog."default",
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    land_parcel_survey numeric NOT NULL,
+    area_surveyed numeric NOT NULL,
+    report_date date NOT NULL,
+    file_ext character varying(5) COLLATE pg_catalog."default",
+    bhunaksha_ref_id character varying(255) COLLATE pg_catalog."default",
+    CONSTRAINT gisassistant_qaqc_report_logs_pkey PRIMARY KEY (id)
+)
+
+alter table survey_daily_progress_reports add column is_gis_qaqc_completed smallint DEFAULT (0);
+
+alter table surveyor_villages add column is_surveyor_completed_survey smallint default 0;
+alter table surveyor_villages add column is_gis_qaqc_completed smallint default 0;

@@ -1,0 +1,30 @@
+-- locmaster DB
+
+CREATE TABLE IF NOT EXISTS public.survey_daily_progress_report_logs
+(
+    id bigserial,
+	survey_daily_progress_report_id bigint NOT NULL,
+    team_id bigint NOT NULL,
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(200) COLLATE pg_catalog."default",
+    surveyor_code character varying(15) COLLATE pg_catalog."default",
+    created_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    updated_by character varying(15) COLLATE pg_catalog."default" NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    land_parcel_survey numeric NOT NULL,
+    area_surveyed numeric NOT NULL,
+    is_freezed smallint NOT NULL DEFAULT 0,
+    report_date date NOT NULL,
+    file_ext character varying(5) COLLATE pg_catalog."default",
+    team_member_id bigint NOT NULL,
+    bhunaksha_ref_id character varying(255) COLLATE pg_catalog."default",
+    CONSTRAINT survey_daily_progress_report_logs_pkey PRIMARY KEY (id)
+)
+
+alter table survey_daily_progress_reports add column updated_by varchar(15)
