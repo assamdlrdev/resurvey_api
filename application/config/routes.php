@@ -101,6 +101,16 @@ $route['singlesign_login'] = 'Api/LoginController/singleSignRedirect';
 $route['get_deed'] = 'Api/ResurveyDataController/getDeed';
 
 
+//api reports
+$route['api/report/districts'] = 'Api/ReportApiController/districts';
+$route['api/report/circles'] = 'Api/ReportApiController/circles';
+$route['api/report/mouzas'] = 'Api/ReportApiController/mouzas';
+$route['api/report/lots'] = 'Api/ReportApiController/lots';
+$route['api/report/villages'] = 'Api/ReportApiController/villages';
+$route['api/report/dag'] = 'Api/ReportApiController/dags';
+
+
+
 
 
 

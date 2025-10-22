@@ -166,3 +166,8 @@ ADD COLUMN updated_by VARCHAR(10);
 ALTER TABLE chitha_basic_splitted_dags
 ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
 
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN email VARCHAR(255);
+
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN photo_path VARCHAR(255);
