@@ -67,8 +67,10 @@ class Report_model extends CI_Model
         $data = [];
 
         $lots_query = $this->db->query("
-            select loc.loc_name as name, loc.locname_eng as name_eng, loc.dist_code, loc.subdiv_code, loc.cir_code, loc.mouza_pargona_code, loc.lot_no from location loc
+            select loc.loc_name as name, loc.locname_eng as name_eng, loc.dist_code, loc.subdiv_code, loc.cir_code, loc.mouza_pargona_code, loc.lot_no, count(distinct_villages.*) as villages_count from location loc
+            join location distinct_villages on loc.dist_code = distinct_villages.dist_code and loc.subdiv_code = distinct_villages.subdiv_code and loc.cir_code = distinct_villages.cir_code and loc.mouza_pargona_code = distinct_villages.mouza_pargona_code and loc.lot_no = distinct_villages.lot_no and distinct_villages.vill_townprt_code != '00000'
             where loc.dist_code = ? and loc.subdiv_code = ? and loc.cir_code = ? and loc.mouza_pargona_code = ? and loc.lot_no != '00' and loc.vill_townprt_code = '00000'
+            group by loc.loc_name, loc.locname_eng, loc.dist_code, loc.subdiv_code, loc.cir_code, loc.mouza_pargona_code, loc.lot_no
             order by loc.locname_eng
         ", [$district, $subdiv, $circle, $mouza]);
         $lots =  $lots_query->result();
@@ -82,6 +84,7 @@ class Report_model extends CI_Model
                 'lot_no'        => $lot->lot_no,
                 'name'           => $lot->name,
                 'name_eng'       => $lot->name_eng,
+                'villages_count' => (int) $lot->villages_count,
                 'data_collection'     => (int) $cbsd_count
             ];
         }
@@ -128,6 +131,9 @@ class Report_model extends CI_Model
             order by dag_no
         ", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode]);
         $dags =  $dags_query->result();
+        $total_dags_area = 0;
+        $total_splitted_dags_area = 0;
+        $total_part_dags_entered = 0;
         foreach ($dags as $key => $dag) {
             $splitted_dags_query = $this->db->query("
                 select * from chitha_basic_splitted_dags where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ? and dag_no = ?
@@ -142,6 +148,10 @@ class Report_model extends CI_Model
                 $splitted_dags_area_sqm += $splitted_dag_area_sqm;
             }
 
+            $total_dags_area += $dag_area_sqm;
+            $total_splitted_dags_area += $splitted_dags_area_sqm;
+            $total_part_dags_entered += count($splitted_dags);
+
             $data[] = [
                 'dist_code'      => $dag->dist_code,
                 'subdiv_code'   => $dag->subdiv_code,
@@ -155,6 +165,22 @@ class Report_model extends CI_Model
                 'splitted_dags_area_sqm' => $splitted_dags_area_sqm
             ];
         }
-        return $data;
+
+
+        $url = "https://landhub.assam.gov.in/api/index.php/BhunakshaApiController/getDraftVillageGeoJson";
+		$method = 'POST';
+		$data2['location'] = $district.'_'.$subdiv.'_'.$circode.'_'.$mouzacode.'_'.$lotcode.'_'.$villcode;
+
+		$map_geojon = callApiV3($url, $method, $data2);
+        $map_geojon_decoded = json_decode($map_geojon);
+        $map_geojson = $map_geojon_decoded->features ?? [];
+
+        return [
+            'dags' => $data,
+            'total_dags_area_sqm' => $total_dags_area,
+            'total_splitted_dags_area_sqm' => $total_splitted_dags_area,
+            'total_part_dags_entered' => $total_part_dags_entered,
+            'map_geojson' => $map_geojson
+        ];
     }
 }
