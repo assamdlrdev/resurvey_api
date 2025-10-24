@@ -316,7 +316,7 @@ class ResurveyReportController extends CI_Controller
                 AND cb.subdiv_code = '{$subdiv_code}'
                 AND cb.cir_code = '{$cir_code}'
             ")->row()->total;
-            $data['totalCount'] = $totalCount; 
+            $data['totalCount'] = $totalCount;
         } else {
             $data['totalCount'] = 0;
         }
@@ -331,7 +331,8 @@ class ResurveyReportController extends CI_Controller
         echo json_encode($response);
     }
 
-    public function getResurveyLmDashData(){
+    public function getResurveyLmDashData()
+    {
         $dist_code   = $this->jwt_data->dcode;
         $subdiv_code = $this->jwt_data->subdiv_code;
         $cir_code    = $this->jwt_data->cir_code;
@@ -406,7 +407,7 @@ class ResurveyReportController extends CI_Controller
             AND cb.mouza_pargona_code = '{$mouza_pargona_code}'
             AND cb.lot_no = '{$lot_no}'
             ")->row()->total;
-            $data['totalCount'] = $totalCount; 
+            $data['totalCount'] = $totalCount;
         } else {
             $data['totalCount'] = 0;
         }
@@ -417,6 +418,111 @@ class ResurveyReportController extends CI_Controller
             'status' => 'y',
             'msg'    => 'Resurvey Report Data fetched successfully',
             'data'   => $data
+        ];
+        echo json_encode($response);
+    }
+
+    public function getResurveyReport()
+    {
+        $this->load->helper('cookie');
+        $request_data = json_decode(file_get_contents('php://input', true));
+
+        // Extract filter parameters
+        $dist_code   = isset($request_data->dist_code) ? $request_data->dist_code : null;
+        $subdiv_code = isset($request_data->subdiv_code) ? $request_data->subdiv_code : null;
+        $cir_code    = isset($request_data->cir_code) ? $request_data->cir_code : null;
+        $mouza_pargona_code = isset($request_data->mouza_pargona_code) ? $request_data->mouza_pargona_code : null;
+        $lot_no = isset($request_data->lot_no) ? $request_data->lot_no : null;
+        $vill_townprt_code = isset($request_data->vill_townprt_code) ? $request_data->vill_townprt_code : null;
+        $page        = isset($request_data->page) ? (int)$request_data->page : 1;
+        $pageSize    = isset($request_data->pageSize) ? (int)$request_data->pageSize : 10;
+
+        header('Content-Type: application/json');
+
+        // Validate district code
+        if (!$dist_code) {
+            echo json_encode([
+                'status' => 'n',
+                'msg'    => 'District code is required',
+            ]);
+            return;
+        }
+
+        $this->dbswitch($dist_code);
+        $dist_data = [];
+        $dist_data['dist_name'] = RESURVEY_DISTRICTS[$dist_code] ?? null;
+
+        // Build the dynamic WHERE clause
+        $whereConditions = "WHERE l_circle.mouza_pargona_code = '00'"; // Default condition (common for all)
+
+        // Add conditions based on the filters provided
+        if ($subdiv_code) {
+            $whereConditions .= " AND cb.subdiv_code = '{$subdiv_code}'";
+        }
+        if ($cir_code) {
+            $whereConditions .= " AND cb.cir_code = '{$cir_code}'";
+        }
+        if ($mouza_pargona_code) {
+            $whereConditions .= " AND cb.mouza_pargona_code = '{$mouza_pargona_code}'";
+        }
+        if ($lot_no) {
+            $whereConditions .= " AND cb.lot_no = '{$lot_no}'";
+        }
+        if ($vill_townprt_code) {
+            $whereConditions .= " AND cb.vill_townprt_code = '{$vill_townprt_code}'";
+        }
+
+        // 1️⃣ Total count query with dynamic WHERE
+        $totalCount = $this->db->query("
+        SELECT COUNT(*) as total
+        FROM chitha_basic_splitted_dags cb
+        LEFT JOIN location l_circle 
+            ON cb.dist_code = l_circle.dist_code 
+            AND cb.subdiv_code = l_circle.subdiv_code 
+            AND cb.cir_code = l_circle.cir_code
+        {$whereConditions}
+    ")->row()->total;
+
+        // 2️⃣ Pagination calculation
+        $offset = ($page - 1) * $pageSize;
+
+        // 3️⃣ Main query with dynamic WHERE and LIMIT + OFFSET
+        $chitha_basic_splitted_dags = $this->db->query("
+        SELECT 
+            cb.dist_code, cb.subdiv_code, cb.cir_code, cb.mouza_pargona_code, cb.lot_no, cb.vill_townprt_code,
+            cb.dag_no as old_dag_no, cb.survey_no as dag_no, cb.patta_no, cb.patta_type_code,
+            pc.patta_type as patta_type, cb.land_class_code, lcg.name as land_class, 
+            cb.user_code, cb.date_entry,
+            l_village.loc_name as village_name, 
+            l_circle.loc_name as circle_name
+        FROM chitha_basic_splitted_dags cb
+        LEFT JOIN patta_code pc ON cb.patta_type_code = pc.type_code
+        LEFT JOIN land_class_groups lcg ON cb.land_class_code = lcg.land_class_code
+        LEFT JOIN location l_village 
+            ON cb.dist_code = l_village.dist_code 
+            AND cb.subdiv_code = l_village.subdiv_code 
+            AND cb.cir_code = l_village.cir_code 
+            AND cb.mouza_pargona_code = l_village.mouza_pargona_code 
+            AND cb.lot_no = l_village.lot_no 
+            AND cb.vill_townprt_code = l_village.vill_townprt_code
+        LEFT JOIN location l_circle 
+            ON cb.dist_code = l_circle.dist_code 
+            AND cb.subdiv_code = l_circle.subdiv_code 
+            AND cb.cir_code = l_circle.cir_code
+        {$whereConditions}
+        ORDER BY cb.date_entry DESC
+        LIMIT {$pageSize} OFFSET {$offset}
+    ")->result();
+
+        $dist_data['chitha_basic_splitted_dags'] = $chitha_basic_splitted_dags;
+        $dist_data['totalCount'] = $totalCount; // 👈 add totalCount for frontend
+
+        $this->db->close(); // cleanup connection
+
+        $response = [
+            'status' => 'y',
+            'msg'    => 'Resurvey Report Data fetched successfully',
+            'data'   => $dist_data
         ];
         echo json_encode($response);
     }

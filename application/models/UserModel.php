@@ -57,6 +57,22 @@ class UserModel extends CI_Model
             case 'SPMU':
                 $code = self::$SPMU_CODE;
                 break;
+            case 'ADMIN':
+                $code = self::$ADMIN_CODE;
+                break;
+            case 'SADM':
+                $code = self::$SUPERADMIN_CODE;
+                break;
+            case 'GUEST':
+                $code = self::$GUEST_CODE;
+                break;
+            case 'SSADM':
+                $code = self::$SURVEY_SUPER_ADMIN_CODE;
+                break;
+            case 'GISA':
+                $code = self::$SURVEY_GIS_ASSISTANT_CODE;
+                break;
+
             default:
                 $code = '';
                 break;
@@ -99,6 +115,18 @@ class UserModel extends CI_Model
                 break;
             case 12:
                 $name = 'SPMU';
+                break;
+            case 13:
+                $name = 'SSADM';
+                break;
+            case 14:
+                $name = 'GISA';
+                break;
+            case 2:
+                $name = 'SADM';
+                break;
+            case 9:
+                $name = 'GUEST';
                 break;
             default:
                 $name = '';
@@ -420,23 +448,20 @@ class UserModel extends CI_Model
         }
     }
 
-    public function getSurveyUsers() {
+    public function getSurveyUsers()
+    {
         $users = $this->db->query("SELECT * FROM dataentryusers WHERE (user_role='10' OR user_role='11' OR user_role='12' OR user_role='13' OR user_role='14') AND user_status='E' ORDER BY date_of_creation DESC")->result();
 
         foreach ($users as $user) {
-            if($user->user_role == '13') {
+            if ($user->user_role == '13') {
                 $user->role_name = 'SuperAdmin';
-            }
-            else if ($user->user_role == '10') {
+            } else if ($user->user_role == '10') {
                 $user->role_name = 'Supervisor';
-            }
-            else if ($user->user_role == '11') {
+            } else if ($user->user_role == '11') {
                 $user->role_name = 'Surveyor';
-            }
-            else if($user->user_role == '12') {
+            } else if ($user->user_role == '12') {
                 $user->role_name = 'SPMU';
-            }
-            else if($user->user_role == '14') {
+            } else if ($user->user_role == '14') {
                 $user->role_name = 'GIS Assistant';
             }
         }
