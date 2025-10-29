@@ -123,60 +123,114 @@ class Report_model extends CI_Model
     public function getDagReport($district, $subdiv, $circode, $mouzacode, $lotcode, $villcode)
     {
         $data = [];
-        $b = 1337.803776;//1 bigha  = 1337.803776 sqm
-        $k = 267.5607552;//1 katha = 267.5607552 sqm
-        $l = 13.37803776;//1 lecha = 13.37803776 sqm
+        $b = 1337.803776; //1 bigha  = 1337.803776 sqm
+        $k = 267.5607552; //1 katha = 267.5607552 sqm
+        $l = 13.37803776; //1 lecha = 13.37803776 sqm
         $dags_query = $this->db->query("
             select * from chitha_basic where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ?
-            order by dag_no
+            order by dag_no_int
         ", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode]);
         $dags =  $dags_query->result();
         $total_dags_area = 0;
         $total_splitted_dags_area = 0;
         $total_part_dags_entered = 0;
         foreach ($dags as $key => $dag) {
-            $splitted_dags_query = $this->db->query("
+            $is_splitted_itself = $this->db->query("select count(*) as cnt from chitha_basic_splitted_dags where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ? and survey_no = ?", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode, $dag->dag_no])->row()->cnt;
+            if ($is_splitted_itself == 0) {
+                $splitted_dags_query = $this->db->query("
                 select * from chitha_basic_splitted_dags where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ? and dag_no = ?
                 order by survey_no
             ", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode, $dag->dag_no]);
-            $splitted_dags =  $splitted_dags_query->result();
-            $dag_area_sqm =  ($dag->dag_area_b * $b) + ($dag->dag_area_k * $k) + ($dag->dag_area_lc * $l);
-            $splitted_dags_area_sqm = 0;
+                $splitted_dags =  $splitted_dags_query->result();
+                $dag_area_sqm =  ($dag->dag_area_b * $b) + ($dag->dag_area_k * $k) + ($dag->dag_area_lc * $l);
+                $splitted_dags_area_sqm = 0;
 
-            foreach ($splitted_dags as $sdkey => $splitted_dag) {
-                $splitted_dag_area_sqm =  ($splitted_dag->dag_area_b * $b) + ($splitted_dag->dag_area_k * $k) + ($splitted_dag->dag_area_lc * $l);
-                $splitted_dags_area_sqm += $splitted_dag_area_sqm;
+                foreach ($splitted_dags as $sdkey => $splitted_dag) {
+                    $splitted_dag_area_sqm =  ($splitted_dag->dag_area_b * $b) + ($splitted_dag->dag_area_k * $k) + ($splitted_dag->dag_area_lc * $l);
+                    $splitted_dags_area_sqm += $splitted_dag_area_sqm;
+                }
+
+                $total_dags_area += $dag_area_sqm;
+                $total_splitted_dags_area += $splitted_dags_area_sqm;
+                $total_part_dags_entered += count($splitted_dags);
+
+                $data[] = [
+                    'dist_code'      => $dag->dist_code,
+                    'subdiv_code'   => $dag->subdiv_code,
+                    'cir_code'      => $dag->cir_code,
+                    'mouza_pargona_code' => $dag->mouza_pargona_code,
+                    'lot_no'        => $dag->lot_no,
+                    'vill_townprt_code' => $dag->vill_townprt_code,
+                    'dag_no'        => $dag->dag_no,
+                    'splitted_dags' => $splitted_dags,
+                    'dag_area_sqm' => $dag_area_sqm,
+                    'splitted_dags_area_sqm' => $splitted_dags_area_sqm
+                ];
             }
-
-            $total_dags_area += $dag_area_sqm;
-            $total_splitted_dags_area += $splitted_dags_area_sqm;
-            $total_part_dags_entered += count($splitted_dags);
-
-            $data[] = [
-                'dist_code'      => $dag->dist_code,
-                'subdiv_code'   => $dag->subdiv_code,
-                'cir_code'      => $dag->cir_code,
-                'mouza_pargona_code' => $dag->mouza_pargona_code,
-                'lot_no'        => $dag->lot_no,
-                'vill_townprt_code' => $dag->vill_townprt_code,
-                'dag_no'        => $dag->dag_no,
-                'splitted_dags' => $splitted_dags,
-                'dag_area_sqm' => $dag_area_sqm,
-                'splitted_dags_area_sqm' => $splitted_dags_area_sqm
-            ];
         }
 
 
         $url = "https://landhub.assam.gov.in/api/index.php/BhunakshaApiController/getDraftVillageGeoJson";
-		$method = 'POST';
-		$data2['location'] = $district.'_'.$subdiv.'_'.$circode.'_'.$mouzacode.'_'.$lotcode.'_'.$villcode;
+        $method = 'POST';
+        $data2['location'] = $district . '_' . $subdiv . '_' . $circode . '_' . $mouzacode . '_' . $lotcode . '_' . $villcode;
 
-		$map_geojon = callApiV3($url, $method, $data2);
+        $map_geojon = callApiV3($url, $method, $data2);
         $map_geojon_decoded = json_decode($map_geojon);
         $map_geojson = $map_geojon_decoded->features ?? [];
 
         return [
             'dags' => $data,
+            'total_dags_area_sqm' => $total_dags_area,
+            'total_splitted_dags_area_sqm' => $total_splitted_dags_area,
+            'total_part_dags_entered' => $total_part_dags_entered,
+            'map_geojson' => $map_geojson
+        ];
+    }
+
+    public function getSurveyCollectionReport($district, $subdiv, $circode, $mouzacode, $lotcode, $villcode)
+    {
+        $data = [];
+        $b = 1337.803776; //1 bigha  = 1337.803776 sqm
+        $k = 267.5607552; //1 katha = 267.5607552 sqm
+        $l = 13.37803776; //1 lecha = 13.37803776 sqm
+        $dags_query = $this->db->query("
+            select * from chitha_basic where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ?
+            order by dag_no
+        ", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode]);
+        $dags =  $dags_query->result();
+
+        $village_splitted_dags = $this->db->query("
+                select * from chitha_basic_splitted_dags where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ? 
+                order by survey_no
+            ", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode])->result();
+
+        $total_dags_area = 0;
+        $total_splitted_dags_area = 0;
+        $total_part_dags_entered = count($village_splitted_dags);
+
+        foreach ($village_splitted_dags as $sdkey => $splitted_dag) {
+            $splitted_dag_area_sqm =  ($splitted_dag->dag_area_b * $b) + ($splitted_dag->dag_area_k * $k) + ($splitted_dag->dag_area_lc * $l);
+            $total_splitted_dags_area += $splitted_dag_area_sqm;
+            $splitted_dag->area_sqm = $splitted_dag_area_sqm;
+            $splitted_dag->current_land_class = $this->db->query("select name as land_class_name,name_ass as land_class_name_ass from land_class_groups where land_class_code = ?", [$splitted_dag->land_class_code])->row();
+        }
+
+        foreach ($dags as $key => $dag) {
+            $dag_area_sqm =  ($dag->dag_area_b * $b) + ($dag->dag_area_k * $k) + ($dag->dag_area_lc * $l);
+            $total_dags_area += $dag_area_sqm;
+        }
+
+
+        $url = "https://landhub.assam.gov.in/api/index.php/BhunakshaApiController/getDraftVillageGeoJson";
+        $method = 'POST';
+        $data2['location'] = $district . '_' . $subdiv . '_' . $circode . '_' . $mouzacode . '_' . $lotcode . '_' . $villcode;
+
+        $map_geojon = callApiV3($url, $method, $data2);
+        $map_geojon_decoded = json_decode($map_geojon);
+        $map_geojson = $map_geojon_decoded->features ?? [];
+
+        return [
+            'dags' => $village_splitted_dags,
             'total_dags_area_sqm' => $total_dags_area,
             'total_splitted_dags_area_sqm' => $total_splitted_dags_area,
             'total_part_dags_entered' => $total_part_dags_entered,
