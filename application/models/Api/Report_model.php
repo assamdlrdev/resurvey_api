@@ -216,8 +216,11 @@ class Report_model extends CI_Model
         }
 
         foreach ($dags as $key => $dag) {
-            $dag_area_sqm =  ($dag->dag_area_b * $b) + ($dag->dag_area_k * $k) + ($dag->dag_area_lc * $l);
-            $total_dags_area += $dag_area_sqm;
+            $is_splitted_itself = $this->db->query("select count(*) as cnt from chitha_basic_splitted_dags where dist_code = ? and subdiv_code = ? and cir_code = ? and mouza_pargona_code = ? and lot_no = ? and vill_townprt_code = ? and survey_no = ?", [$district, $subdiv, $circode, $mouzacode, $lotcode, $villcode, $dag->dag_no])->row()->cnt;
+            if ($is_splitted_itself == 0) {
+                $dag_area_sqm =  ($dag->dag_area_b * $b) + ($dag->dag_area_k * $k) + ($dag->dag_area_lc * $l);
+                $total_dags_area += $dag_area_sqm;
+            }
         }
 
 
