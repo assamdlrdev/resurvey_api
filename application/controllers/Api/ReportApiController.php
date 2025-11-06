@@ -160,6 +160,34 @@ class ReportApiController extends CI_Controller
         echo json_encode($result);
     }
 
+    public function get_village_map_data(){
+        $request_data = json_decode(file_get_contents('php://input', true));
+        $loc = $request_data->loc;
+        $requestDataArr = explode('-', $loc);
+
+        $dist_code = $requestDataArr[0];
+        $subdiv_code = $requestDataArr[1];
+        $cir_code = $requestDataArr[2];
+        $mouza_pargona_code = $requestDataArr[3];
+        $lot_no = $requestDataArr[4];
+        $vill_townprt_code = $requestDataArr[5];
+        
+        $url = DRAFT_MAP_API;
+		$method = 'POST';
+		$data2['location'] = $dist_code.'_'.$subdiv_code.'_'.$cir_code.'_'.$mouza_pargona_code.'_'.$lot_no.'_'.$vill_townprt_code;
+
+		$map_geojon = callApiV3($url, $method, $data2);
+        $map_geojon_decoded = json_decode($map_geojon);
+        $response = [
+            'status' => 'y',
+            'msg' => 'Successfully retrieved data!',
+            'map_geojson' => $map_geojon_decoded->features ? $map_geojon_decoded : ''
+        ];
+        $this->output->set_status_header(200);
+        echo json_encode($response);
+        return;
+    }
+
 
     private function _error($message)
     {
