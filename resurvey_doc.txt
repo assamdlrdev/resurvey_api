@@ -166,6 +166,7 @@ ADD COLUMN updated_by VARCHAR(10);
 ALTER TABLE chitha_basic_splitted_dags
 ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
 
+<<<<<<< HEAD
 
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN email VARCHAR(255),
@@ -333,6 +334,8 @@ CREATE TABLE public.t_chitha_col8_inplace (
 	CONSTRAINT pk_t_chitha_col8_inplace PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no, inplace_of_id)
 );
 
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN email VARCHAR(255);
 
-
-
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN photo_path VARCHAR(255);

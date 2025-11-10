@@ -660,7 +660,7 @@ class LocationController extends CI_Controller
         $payload = $dags->data;
 
 
-        $url = "https://landhub.assam.gov.in/api/index.php/BhunakshaApiController/getDraftVillageGeoJson";
+        $url = DRAFT_MAP_API;
 		$method = 'POST';
 		$data2['location'] = $dist_code.'_'.$subdiv_code.'_'.$cir_code.'_'.$mouza_pargona_code.'_'.$lot_no.'_'.$vill_townprt_code;
 
@@ -1890,4 +1890,165 @@ class LocationController extends CI_Controller
         // ]);
         // exit;
     }
+
+
+    public function getPartdagDataPreview()
+    {
+        $this->load->helper('cookie');
+
+        header('Content-Type: application/json');
+        if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
+            $data = json_decode(file_get_contents('php://input', true));
+            $msg = null;
+            
+            if (!isset($data) || $data == null)
+                $msg = $msg . " Missing Parameters,";
+
+            if (!isset($data->vill_townprt_code) || $data->vill_townprt_code == null)
+                $msg = $msg . " Missing Village Code,";
+            if (!isset($data->dag_no) || $data->dag_no == null)
+                $msg = $msg . " Missing Dag No";
+            if (!isset($data->part_dag) || $data->part_dag == null)
+                $msg = $msg . " Missing Part Dag No";
+            if ($msg != null && !empty($msg)) {
+                $response = [
+                    'status' => 'n',
+                    'msg' => $msg
+                ];
+                $this->output->set_status_header(401);  // Change to 400, 401, 500, etc. as needed
+                echo json_encode($response);
+                exit;
+            }
+
+
+            $villageCode = $data->vill_townprt_code;
+            $dagNo = $data->dag_no;
+            $partDag = $data->part_dag;
+        } else {
+            $msg = null;
+            
+            
+            if (!isset($_POST['vill_townprt_code']) || empty($_POST['vill_townprt_code']))
+                $msg = $msg . " Missing Village Code,";
+            if (!isset($_POST['dag_no']) || empty($_POST['dgetag_no']))
+                $msg = $msg . " Missing Dag No ";
+            if (!isset($_POST['part_dag']) || empty($_POST['part_dag']))
+                $msg = $msg . " Missing Part Dag No ";
+            if ($msg != null && !empty($msg)) {
+                $response = [
+                    'status' => 'n',
+                    'msg' => $msg
+                ];
+                $this->output->set_status_header(401);  // Change to 400, 401, 500, etc. as needed
+                echo json_encode($response);
+                return;
+            }
+
+
+            $villageCode = $_POST['vill_townprt_code'];
+            $dagNo = $_POST['dag_no'];
+            $partDag = $_POST['part_dag'];
+            // $user_name = $_POST['user_name'];
+            // $password = $_POST['password'];
+        }
+
+        $locationArr = explode('-', $villageCode);
+
+        $dist_code = $locationArr[0];
+        $subdiv_code = $locationArr[1];
+        $cir_code = $locationArr[2];
+        $mouza_pargona_code = $locationArr[3];
+        $lot_no = $locationArr[4];
+        $vill_townprt_code = $locationArr[5];
+        $dag_no = $dagNo;
+        $part_dag = $partDag;
+
+        $this->dbswitch($dist_code);
+
+        //first search in chitha whether updated
+        $partDagDetailsChitha = $this->db->query('SELECT * FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=? AND survey_no=?', [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->row();
+        $partDagDetailsChitha->dist_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=?", [$dist_code, '00'])->row()->loc_name;
+        $partDagDetailsChitha->subdiv_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=? and cir_code=?", [$dist_code, $subdiv_code, '00'])->row()->loc_name;
+        $partDagDetailsChitha->cir_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=? and cir_code=? and mouza_pargona_code=?", [$dist_code, $subdiv_code, $cir_code, '00'])->row()->loc_name;
+        $partDagDetailsChitha->mouza_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=? and cir_code=? and mouza_pargona_code=? and lot_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, '00'])->row()->loc_name;
+        $partDagDetailsChitha->lot_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=? and cir_code=? and mouza_pargona_code=? and lot_no=? and vill_townprt_code=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, '00000'])->row()->loc_name;
+        $partDagDetailsChitha->village_name = $this->db->query("SELECT loc_name FROM location WHERE dist_code=? and subdiv_code=? and cir_code=? and mouza_pargona_code=? and lot_no=? and vill_townprt_code=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code])->row()->loc_name;
+        $current_landclass_name = $this->db->query("SELECT name_ass FROM land_class_groups WHERE land_class_code=?", [$partDagDetailsChitha->land_class_code])->row();
+        $partDagDetailsChitha->current_landclass_name = (!empty($current_landclass_name)) ? $current_landclass_name->name_ass : '';
+
+        if (!empty($partDagDetailsChitha)) {
+            $partDagDetailsChitha->from_chitha = 1;
+            $partDagDetailsChitha->from_bhunaksha = 0;
+
+            $possessors = $this->db->query("SELECT * FROM splitted_dags_possessors WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND old_dag_no=? AND part_dag=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->result();
+            if (!empty($possessors)) {
+                foreach ($possessors as $possessor) {
+                    $guard_relation = $possessor->guard_relation;
+                    $pattadar_relation = $possessor->pattadar_relation;
+                    $mode_of_acquisition = $possessor->mode_of_acquisition;
+
+                    $guard_relation_data = $this->db->query("SELECT guard_rel_desc_as, guard_rel_desc FROM master_guard_rel WHERE guard_rel=?", [$guard_relation])->row();
+                    $pdar_relation_data = $this->db->query("SELECT guard_rel_desc_as, guard_rel_desc FROM master_guard_rel WHERE guard_rel=?", [$pattadar_relation])->row();
+
+
+                    $guard_relation_name = (!empty($guard_relation_data)) ? $guard_relation_data->guard_rel_desc_as . ' (' . $guard_relation_data->guard_rel_desc . ')' : '';
+                    $pattadar_relation_name = (!empty($pdar_relation_data)) ? $pdar_relation_data->guard_rel_desc_as . ' (' . $pdar_relation_data->guard_rel_desc . ')' : '';
+
+                    $mode_of_acquisition_name = '';
+                    foreach(TRANSFER_TYPES as $key => $t_type) {
+                        if($key == $mode_of_acquisition) {
+                            $mode_of_acquisition_name = $t_type;
+                            break;
+                        }
+                    }
+
+                    $possessor->guard_relation_name = $guard_relation_name;
+                    $possessor->pattadar_relation_name = $pattadar_relation_name;
+                    $possessor->mode_of_acquisition_name = $mode_of_acquisition_name;
+                    $possessor->ownership_documents = $this->db->query("select * from ownership_documents where possessor_u_id= ? ",[$possessor->possessor_u_id])->result();
+                }
+            }
+
+            $pattadars = $this->db->query("SELECT cdp.*, cp.pdar_name, cp.pdar_father FROM chitha_dag_pattadar cdp, chitha_pattadar cp WHERE cdp.dist_code=cp.dist_code AND cdp.subdiv_code=cp.subdiv_code AND cdp.cir_code=cp.cir_code AND cdp.mouza_pargona_code=cp.mouza_pargona_code AND cdp.lot_no=cp.lot_no AND cdp.vill_townprt_code=cp.vill_townprt_code AND cdp.patta_no=cp.patta_no AND cdp.patta_type_code=cp.patta_type_code AND cdp.pdar_id=cp.pdar_id AND cdp.dist_code=? AND cdp.subdiv_code=? AND cdp.cir_code=? AND cdp.mouza_pargona_code=? AND cdp.lot_no=? AND cdp.vill_townprt_code=? AND cdp.patta_no=? AND cdp.patta_type_code=? AND cdp.dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $partDagDetailsChitha->patta_no, $partDagDetailsChitha->patta_type_code, $partDagDetailsChitha->survey_no])->result();
+
+            // $partDagPattadars = [];
+            if (!empty($pattadars)) {
+                foreach ($pattadars as $pattadar) {
+                    $pattadar->label = $pattadar->pdar_name . ' (' . $pattadar->pdar_father . ')';
+                    $pattadar->value = $dist_code . '-' . $subdiv_code . '-' . $cir_code . '-' . $mouza_pargona_code . '-' . $lot_no . '-' . $vill_townprt_code . '-' . $pattadar->patta_no . '-' . $pattadar->patta_type_code . '-' . $pattadar->pdar_id;
+
+                    // $row['label'] = $pattadar->pdar_name . ' (' . $pattadar->pdar_father . ')';
+                    // $row['value'] = $dist_code . '-' . $subdiv_code . '-' . $cir_code . '-' . $mouza_pargona_code . '-' . $lot_no . '-' . $vill_townprt_code . '-' . $pattadar->patta_no . '-' . $pattadar->patta_type_code . '-' . $pattadar->pdar_id;
+
+                    // $partDagPattadars[] = $row;
+                }
+            }
+
+            $partDagDetailsChitha->pattadars = $pattadars;
+            $partDagDetailsChitha->possessors = $possessors;
+
+            $partDagDetailsChitha->tenants = $this->db->query("SELECT * FROM chitha_tenant WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $partDagDetailsChitha->survey_no])->result();
+
+            $response = [
+                'status' => 'y',
+                'msg' => 'Successfully retrieved data!',
+                'data' => $partDagDetailsChitha
+            ];
+            $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
+            echo json_encode($response);
+            return;
+        }else{
+            $response = [
+                'status' => 'n',
+                'msg' => 'No data found for the given part dag!',
+                'data' => null
+            ];
+            $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
+            echo json_encode($response);
+            return;
+        }
+
+        
+    }
+
 }

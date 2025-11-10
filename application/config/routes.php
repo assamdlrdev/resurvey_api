@@ -78,11 +78,13 @@ $route['get-master-data'] = 'Api/ResurveyDataController/getResurveyMasterData';
 $route['get-dag-data'] = 'Api/ResurveyDataController/getResurveyDagData';
 $route['get-survey-no-data'] = 'Api/ResurveyDataController/getSurveyNoData';
 $route['get_chitha_data'] = 'Api/ResurveyDataController/getChithaData';
+$route['get_partdag_data_preview'] = 'Api/LocationController/getPartdagDataPreview';
 
 
 //reports
 $route['get-resurvey-report'] = 'Api/ResurveyReportController/getResurveyReportData';
 $route['get-district-report'] = 'Api/ResurveyReportController/getResurveyReportDistData';
+$route['get-report'] = 'Api/ResurveyReportController/getResurveyReport';
 //co routes
 $route['get-circle-resurvey-report'] = 'Api/ResurveyReportController/getResurveyReportCoData';
 $route['get-circle-resurvey-dashboard'] = 'Api/ResurveyReportController/getResurveyCoDashData';
@@ -112,6 +114,20 @@ $route['singlesign_login'] = 'Api/LoginController/singleSignRedirect';
 
 //deeds
 $route['get_deed'] = 'Api/ResurveyDataController/getDeed';
+
+
+//api reports
+$route['api/report/districts'] = 'Api/ReportApiController/districts';
+$route['api/report/circles'] = 'Api/ReportApiController/circles';
+$route['api/report/mouzas'] = 'Api/ReportApiController/mouzas';
+$route['api/report/lots'] = 'Api/ReportApiController/lots';
+$route['api/report/villages'] = 'Api/ReportApiController/villages';
+$route['api/report/dag'] = 'Api/ReportApiController/dags';
+$route['api/report/collection'] = 'Api/ReportApiController/collection_report';
+
+//maps api
+$route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map_data';
+
 
 
 
