@@ -88,9 +88,24 @@ $route['get-report'] = 'Api/ResurveyReportController/getResurveyReport';
 //co routes
 $route['get-circle-resurvey-report'] = 'Api/ResurveyReportController/getResurveyReportCoData';
 $route['get-circle-resurvey-dashboard'] = 'Api/ResurveyReportController/getResurveyCoDashData';
+$route['get_co_mut_cases'] = 'Api/MutationDataController/getCOMutCases';
+$route['get_co_case'] = 'Api/MutationDataController/getCoCase';
+$route['submit_co_case'] = 'Api/MutationDataController/submitCase';
 
 //lm routes
 $route['get-lm-resurvey-dashboard'] = 'Api/ResurveyReportController/getResurveyLmDashData';
+$route['get_lm_villages'] = 'Api/MutationDataController/getLmVillages';
+$route['get_lm_patta_types'] = 'Api/MutationDataController/getPattaTypes';
+$route['get_lm_pattas'] = 'Api/MutationDataController/getPattaNos';
+$route['get_lm_dags'] = 'Api/MutationDataController/getDags';
+$route['get_lm_pattadars'] = 'Api/MutationDataController/getPattadars';
+$route['get_lm_pdar_dags'] = 'Api/MutationDataController/getPdarDags';
+$route['get_lm_transfer_types'] = 'Api/MutationDataController/getTransferTypes';
+$route['submit_applicant'] = 'Api/MutationDataController/submitApplicant';
+$route['get_lm_pattadar_dags'] = 'Api/MutationDataController/getPattadarDags';
+$route['lm_mut_submit'] = 'Api/MutationDataController/submitLmMutation';
+$route['get_lm_mut_cases'] = 'Api/MutationDataController/getLmMutCases';
+
 
 
 //singlesignlogin routes
@@ -108,6 +123,10 @@ $route['api/report/mouzas'] = 'Api/ReportApiController/mouzas';
 $route['api/report/lots'] = 'Api/ReportApiController/lots';
 $route['api/report/villages'] = 'Api/ReportApiController/villages';
 $route['api/report/dag'] = 'Api/ReportApiController/dags';
+$route['api/report/collection'] = 'Api/ReportApiController/collection_report';
+
+//maps api
+$route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map_data';
 
 
 

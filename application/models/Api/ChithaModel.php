@@ -2,6 +2,79 @@
 
 class ChithaModel extends CI_Model {
     
+    public function insert_table($table, $params)
+    { 
+        if ($table == 'chitha_basic') {
+            if(!in_array($params['patta_type_code'],['1001','2001'])){
+                if (empty($params['dag_local_tax']) || empty($params['dag_revenue'])) {
+                    return 0;
+                }
+                if(empty($params['patta_no'])){
+                    return 0;
+                }
+            }
+            if (empty($params['land_class_code']) || empty($params['patta_type_code'])) {
+                return 0;
+            }
+        }
+        $this->db->insert($table, $params);
+        // echo $this->db->last_query();
+        // echo "<br>";
+        // if($table == 'chitha_rmk_ordbasic')
+        if ($this->db->affected_rows() >= 1) {
+            // return 1;
+            return $this->db->affected_rows();
+        } else {
+            log_message('error',"INSERTT-".$table."#######".$this->db->last_query());
+            return 0;
+        }
+    }
+    public function update_table($table, $params, $where)
+    {
+        if ($table == 'chitha_basic') {
+            $sqlPattaTypeAllowed = "SELECT type_code FROM patta_code WHERE jamabandi='n'";
+            $patta_array         = array_column(
+                $this->db->query($sqlPattaTypeAllowed)->result_array(),
+                'type_code'
+            );
+            // var_dump($params);die;
+            
+            if (
+                isset($params['patta_type_code']) &&
+                !in_array($params['patta_type_code'], $patta_array)
+            ) {
+                if (
+                    (isset($params['dag_local_tax'], $params['dag_revenue']) &&
+                    (empty($params['dag_local_tax']) || empty($params['dag_revenue'])))
+                    || (isset($params['patta_no']) && empty($params['patta_no']))
+                ) {
+                    return 0;
+                }
+            }
+
+            if ((isset($params['land_class_code']) && empty($params['land_class_code']))) {
+                    // echo "EMPTY";
+                    return 0;
+            }
+            
+        }
+        if (isset($where['patta_no'])) {
+            $pattaNo = trim($where['patta_no']);
+            $this->db->where("TRIM(patta_no) = " . $this->db->escape($pattaNo), null, false);
+            unset($where['patta_no']);
+        }
+        $this->db->where($where);
+        $this->db->update($table, $params);
+        // echo $this->db->last_query();
+        // if($table == 'chitha_rmk_ordbasic')
+        if ($this->db->affected_rows() >= 1) {
+            // return 1;
+            return $this->db->affected_rows();
+        } else {
+            log_message('error',"UPDATEE-".$table."#######".$this->db->last_query());
+            return 0;
+        }
+    }
 
 
     public function getchithaDetailsALL($dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no_lower, $dag_no_upper) {

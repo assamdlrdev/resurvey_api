@@ -187,9 +187,9 @@ class UtilityClass {
 //function created for displaying the village name
     public function getVillageName($dist_code, $subdiv_code, $circle_code, $mouza_code, $lot_no, $vill_code) {
         $CI = & get_instance();
-        $q = "select loc_name AS village from location where dist_code ='$dist_code'  and "
-                . " subdiv_code='$subdiv_code' and cir_code='$circle_code' and mouza_pargona_code='$mouza_code' and "
-                . " vill_townprt_code='$vill_code' and lot_no='$lot_no'";
+        // $q = "select loc_name AS village from location where dist_code ='$dist_code'  and "
+        //         . " subdiv_code='$subdiv_code' and cir_code='$circle_code' and mouza_pargona_code='$mouza_code' and "
+        //         . " vill_townprt_code='$vill_code' and lot_no='$lot_no'";
 
         $village = $CI->db->query("select loc_name AS village from location where dist_code ='$dist_code'  and "
                 . " subdiv_code='$subdiv_code' and cir_code='$circle_code' and mouza_pargona_code='$mouza_code' and "
@@ -321,7 +321,7 @@ class UtilityClass {
             return $relation->row()->guard_rel_desc_as;
         }
 
-        return "unkown";
+        return "unknown";
     }
 
     public function getLapseDays($submission_date) {
@@ -701,6 +701,13 @@ class UtilityClass {
         $CI = & get_instance();
         $q = "SElect gen_name_ass as name from master_gender where id='$id'";
         $scname = $CI->db->query($q)->row()->name;
+        return $scname;
+    }
+
+    function getGenderName($short_name) {
+        $CI = & get_instance();
+        $q = "SELECT gen_name_ass FROM master_gender WHERE short_name=?";
+        $scname = $CI->db->query($q, [$short_name])->row()->gen_name_ass;
         return $scname;
     }
 
