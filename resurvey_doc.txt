@@ -334,8 +334,39 @@ CREATE TABLE public.t_chitha_col8_inplace (
 	CONSTRAINT pk_t_chitha_col8_inplace PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no, inplace_of_id)
 );
 
+ALTER TABLE public.chitha_col8_occup
+ADD COLUMN self_declaration json,
+ADD COLUMN auth_type character varying (20),
+ADD COLUMN id_ref_no character varying (50),
+ADD COLUMN photo character varying (200),
+ADD COLUMN pdar_name_eng character varying (150),
+ADD COLUMN pdar_guard_eng character varying (150);
+
+
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN email VARCHAR(255);
 
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN photo_path VARCHAR(255);
+
+
+
+
+-- SEQUENCE: public.seq_max_field
+
+-- DROP SEQUENCE IF EXISTS public.seq_max_field;
+
+CREATE SEQUENCE IF NOT EXISTS public.seq_max_field
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
+
+ALTER SEQUENCE public.seq_max_field
+    OWNER TO postgres;
+
+
+ALTER TABLE public.field_mut_pattadar
+ALTER COLUMN striked_out TYPE character(1)
+USING LEFT(striked_out, 1);

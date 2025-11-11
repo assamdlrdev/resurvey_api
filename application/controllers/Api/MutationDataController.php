@@ -440,7 +440,7 @@ class MutationDataController extends CI_Controller
         $seq_pet = year_no . '000';
 
         $petition_no = $seq_pet . $this->MutationDataModel->generateFieldPetitionNo();
-        $case_no = $case_name . $petition_no . "/FMUT";
+        $case_no = $case_name . $petition_no . "/FMUT/RESURVEY";
 
         $trans_code = explode('-', $transfer_type)[0];
         $type = explode('-', $transfer_type)[1];
