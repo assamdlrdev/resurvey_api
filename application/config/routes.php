@@ -130,6 +130,16 @@ $route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map
 
 
 
+#Partition: Lot Mondal Routes
+$route['get_lm_villages'] = 'Api/PartitionController/getLmVillages';
+$route['get_patta_types'] = 'Api/PartitionController/getPattaTypes';
+$route['get_patta_numbers'] = 'Api/PartitionController/getPattaNumbers';
+$route['get_dag_numbers'] = 'Api/PartitionController/getDagNumbers';
+$route['get_dag_pattadar_info'] = 'Api/PartitionController/getDagPattadarInfo';
+$route['get_land_area_info'] = 'Api/PartitionController/getLandAreaInfo';
+
+
+
 
 
 
