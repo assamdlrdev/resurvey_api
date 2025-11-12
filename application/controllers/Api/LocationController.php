@@ -660,7 +660,7 @@ class LocationController extends CI_Controller
         $payload = $dags->data;
 
 
-        $url = "https://landhub.assam.gov.in/api/index.php/BhunakshaApiController/getDraftVillageGeoJson";
+        $url = DRAFT_MAP_API;
 		$method = 'POST';
 		$data2['location'] = $dist_code.'_'.$subdiv_code.'_'.$cir_code.'_'.$mouza_pargona_code.'_'.$lot_no.'_'.$vill_townprt_code;
 

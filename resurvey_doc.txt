@@ -1,4 +1,4 @@
-1.new tables - chitha_basic_splitted_dags,splitted_dags_possessors,ownership_documents
+1.new tables - chitha_basic_splitted_dags,resurvey_villages,splitted_dags_possessors, user_activity_logs, ownership_documents
 
 
 add these cols to chitha_tenant.
@@ -166,8 +166,207 @@ ADD COLUMN updated_by VARCHAR(10);
 ALTER TABLE chitha_basic_splitted_dags
 ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
 
+<<<<<<< HEAD
+
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN email VARCHAR(255),
+
+ALTER TABLE public.splitted_dags_possessors
+ADD COLUMN photo_path VARCHAR(255)
+
+
+
+//MUTATION
+
+ALTER TABLE public.field_mut_petitioner 
+ADD COLUMN self_declaration json,
+ADD COLUMN auth_type character varying (20),
+ADD COLUMN id_ref_no character varying (50),
+ADD COLUMN photo character varying (200),
+ADD COLUMN pdar_name_eng character varying (150),
+ADD COLUMN pdar_guard_eng character varying (150);
+
+ALTER TABLE public.petition_proceeding
+ADD COLUMN ip character varying (500)
+
+field_mut_basic, field_mut_petitioner, field_mut_pattadar, field_mut_dag_details, petition_proceeding
+t_chitha_col8_inplace, t_chitha_col8_occup, t_chitha_col8_order
+chitha_col8_occup, chitha_col8_order, chitha_col8_inplace
+
+
+CREATE TABLE public.t_chitha_col8_order (
+	dist_code varchar(2) NOT NULL,
+	subdiv_code varchar(2) NOT NULL,
+	cir_code varchar(2) NOT NULL,
+	mouza_pargona_code varchar(2) NOT NULL,
+	lot_no varchar(2) NOT NULL,
+	vill_townprt_code varchar(5) NOT NULL,
+	dag_no varchar(12) NOT NULL,
+	year_no varchar(4) NOT NULL,
+	petition_no int8 NOT NULL,
+	order_pass_yn varchar(1) NOT NULL,
+	order_type_code varchar(4) NOT NULL,
+	nature_trans_code varchar(2) NULL,
+	lm_code varchar(5) NOT NULL,
+	lm_sign_yn varchar(1) NOT NULL,
+	lm_note_date timestamp NULL,
+	co_code varchar(5) NOT NULL,
+	co_sign_yn varchar(1) NOT NULL,
+	co_ord_date timestamp NULL,
+	iscorrected_inco bpchar(1) NULL,
+	iscorrected_inco_date timestamp NULL,
+	isdataposted_torkg_db bpchar(1) NULL,
+	iscorrected_rkg_record bpchar(1) NULL,
+	iscorrected_rkg_date timestamp NULL,
+	order_passed bpchar(1) NULL,
+	date_of_order timestamp NULL,
+	mut_land_area_b int2 NOT NULL,
+	mut_land_area_k int2 NOT NULL,
+	mut_land_area_lc numeric NOT NULL,
+	mut_land_area_g numeric NOT NULL,
+	mut_land_area_kr int2 NULL,
+	land_area_left_b int2 NOT NULL,
+	land_area_left_k int2 NOT NULL,
+	land_area_left_lc numeric NOT NULL,
+	land_area_left_g numeric NOT NULL,
+	land_area_left_kr int2 NULL,
+	rajah_adalat bpchar(1) NULL,
+	make_mdb bpchar(1) NULL,
+	deed_reg_no varchar(30) NULL,
+	deed_value numeric NULL,
+	deed_date timestamp NULL,
+	sk_code varchar(5) NULL,
+	sk_sign_yn bpchar(1) NULL,
+	sk_note_date timestamp NULL,
+	case_no varchar(50) NULL,
+	min_revenue numeric NULL,
+	map_partition varchar(2) NULL,
+	noc_no varchar(50) NULL,
+	noc_date date NULL,
+	CONSTRAINT pk_t_chitha_col8_order PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no)
+);
+
+CREATE TABLE public.t_chitha_col8_occup (
+	dist_code varchar(2) NOT NULL,
+	subdiv_code varchar(2) NOT NULL,
+	cir_code varchar(2) NOT NULL,
+	mouza_pargona_code varchar(2) NOT NULL,
+	lot_no varchar(2) NOT NULL,
+	vill_townprt_code varchar(5) NOT NULL,
+	dag_no varchar(12) NOT NULL,
+	year_no varchar(4) NOT NULL,
+	petition_no int8 NOT NULL,
+	occupant_id int2 NOT NULL,
+	patta_type_code varchar(4) NULL,
+	patta_no varchar(20) NULL,
+	pdar_id int2 NULL,
+	occupant_name varchar(100) NOT NULL,
+	occupant_fmh_name varchar(100) NOT NULL,
+	occupant_fmh_flag varchar(1) NULL,
+	occupant_add1 varchar(100) NULL,
+	occupant_add2 varchar(100) NULL,
+	occupant_add3 varchar(100) NULL,
+	land_area_b int2 NOT NULL,
+	land_area_k int2 NOT NULL,
+	land_area_lc numeric NOT NULL,
+	land_area_g numeric NOT NULL,
+	land_area_kr int2 NOT NULL,
+	old_patta_no varchar(20) NULL,
+	new_patta_no varchar(20) NULL,
+	old_dag_no varchar(12) NULL,
+	new_dag_no varchar(12) NULL,
+	iscorrected_inco bpchar(1) NULL,
+	iscorrected_inco_date timestamp NULL,
+	isdataposted_torkg_db bpchar(1) NULL,
+	iscorrected_rkg_record bpchar(1) NULL,
+	iscorrected_rkg_date timestamp NULL,
+	order_passed bpchar(1) NULL,
+	date_of_order bpchar(1) NULL,
+	make_mdb bpchar(1) NULL,
+	revenue numeric NULL,
+	new_pattadar bpchar(1) NULL,
+	hus_wife bpchar(1) NULL,
+	occup_gender bpchar(1) NULL,
+	occup_minor_yn bpchar(1) NULL,
+	occup_minor_dob timestamp NULL,
+	occup_mother varchar(100) NULL,
+	self_declaration json NULL,
+	auth_type varchar(20) NULL,
+	id_ref_no varchar(50) NULL,
+	photo varchar(200) NULL,
+	pdar_name_eng varchar(150) NULL,
+	pdar_guard_eng varchar(150) NULL,
+	CONSTRAINT pk_t_chitha_col8_occup PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no, occupant_id)
+);
+
+CREATE TABLE public.t_chitha_col8_inplace (
+	dist_code varchar(2) NOT NULL,
+	subdiv_code varchar(2) NOT NULL,
+	cir_code varchar(2) NOT NULL,
+	mouza_pargona_code varchar(2) NOT NULL,
+	lot_no varchar(2) NOT NULL,
+	vill_townprt_code varchar(5) NOT NULL,
+	dag_no varchar(12) NOT NULL,
+	year_no varchar(4) NOT NULL,
+	petition_no int8 NOT NULL,
+	pdar_id int2 NOT NULL,
+	inplace_of_id int2 NOT NULL,
+	inplace_of_name varchar(100) NOT NULL,
+	land_area_b int2 NOT NULL,
+	land_area_k int2 NOT NULL,
+	land_area_lc numeric NOT NULL,
+	land_area_g numeric NOT NULL,
+	land_area_kr int2 NULL,
+	iscorrected_inco bpchar(1) NULL,
+	iscorrected_inco_date timestamp NULL,
+	isdataposted_torkg_db bpchar(1) NULL,
+	iscorrected_rkg_record bpchar(1) NULL,
+	iscorrected_rkg_date timestamp NULL,
+	order_passed bpchar(1) NULL,
+	date_of_order bpchar(1) NULL,
+	make_mdb bpchar(1) NULL,
+	fmute_strike_out bpchar(1) NULL,
+	inplace_of_gender bpchar(1) NULL,
+	inplace_of_minor_yn bpchar(1) NULL,
+	inplace_of_minor_dob timestamp NULL,
+	inplace_of_father varchar(100) NULL,
+	inplace_of_mother varchar(100) NULL,
+	CONSTRAINT pk_t_chitha_col8_inplace PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no, inplace_of_id)
+);
+
+ALTER TABLE public.chitha_col8_occup
+ADD COLUMN self_declaration json,
+ADD COLUMN auth_type character varying (20),
+ADD COLUMN id_ref_no character varying (50),
+ADD COLUMN photo character varying (200),
+ADD COLUMN pdar_name_eng character varying (150),
+ADD COLUMN pdar_guard_eng character varying (150);
+
+
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN email VARCHAR(255);
 
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN photo_path VARCHAR(255);
+
+
+
+
+-- SEQUENCE: public.seq_max_field
+
+-- DROP SEQUENCE IF EXISTS public.seq_max_field;
+
+CREATE SEQUENCE IF NOT EXISTS public.seq_max_field
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
+
+ALTER SEQUENCE public.seq_max_field
+    OWNER TO postgres;
+
+
+ALTER TABLE public.field_mut_pattadar
+ALTER COLUMN striked_out TYPE character(1)
+USING LEFT(striked_out, 1);
