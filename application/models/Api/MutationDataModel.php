@@ -842,6 +842,21 @@ class MutationDataModel extends CI_Model
                 'msg' => 'Successfully created order!'
             ]; 
         }
+
+        public function authorizeLM($dist_code, $subdiv_code, $cir_code, $user_code) {
+            $lmData = $this->db->query("SELECT * FROM lm_code WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND lm_code=? AND status='E'", [$dist_code, $subdiv_code, $cir_code, $user_code])->row();
+
+            if(empty($lmData)) {
+                return [
+                    'status' => 'n'
+                ];
+            }
+
+            return [
+                'status' => 'y',
+                'data' => $lmData
+            ];
+        }
 }
 
     
