@@ -372,6 +372,22 @@ class MutationDataController extends CI_Controller
     public function submitLmMutation() {
         $tokenData = $this->jwt_data;
         $dcode = $tokenData->dcode;
+        $subdiv_code = $tokenData->subdiv_code;
+        $cir_code = $tokenData->cir_code;
+        $user_code = $tokenData->usercode;
+
+        $this->dbswitch($dcode);
+
+        $lmData = $this->MutationDataModel->authorizeLM ($dcode, $subdiv_code, $cir_code, $user_code);
+        if($lmData['status'] != 'y') {
+            $this->output->set_status_header(401);
+            echo json_encode([
+                'status' =>'n',
+                'msg' => 'Not Authorized!'
+            ]);
+            return;
+        }
+        // $lmData = $lmData['data'];
 
         $data = json_decode(file_get_contents('php://input', true));
 
@@ -434,7 +450,7 @@ class MutationDataController extends CI_Controller
             return;
         }
 
-        $this->dbswitch($dcode);
+        
 
         $case_name = $this->MutationDataModel->generateCaseName($dist_code, $subdiv_code, $cir_code);
         $seq_pet = year_no . '000';
@@ -766,12 +782,30 @@ class MutationDataController extends CI_Controller
     public function getLmMutCases() {
         $tokenData = $this->jwt_data;
         $dcode = $tokenData->dcode;
+        $subdiv_code = $tokenData->subdiv_code;
+        $cir_code = $tokenData->cir_code;
+        $user_code = $tokenData->usercode;
 
         $data = json_decode(file_get_contents('php://input', true));
 
         $this->dbswitch($dcode);
 
-        $mutBasic = $this->db->query("SELECT * FROM field_mut_basic")->result();
+        $lmData = $this->MutationDataModel->authorizeLM ($dcode, $subdiv_code, $cir_code, $user_code);
+        if($lmData['status'] != 'y') {
+            $this->output->set_status_header(500);
+            echo json_encode([
+                'status' =>'n',
+                'msg' => 'Not Authorized!'
+            ]);
+            return;
+        }
+        $lmData = $lmData['data'];
+
+        // echo '<pre>';
+        // var_dump($tokenData, $lmData);
+        // die;
+
+        $mutBasic = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=?", [$lmData->dist_code, $lmData->subdiv_code, $lmData->cir_code, $lmData->mouza_pargona_code, $lmData->lot_no])->result();
         if(empty($mutBasic)) {
             $this->output->set_status_header(500);
             echo json_encode([
