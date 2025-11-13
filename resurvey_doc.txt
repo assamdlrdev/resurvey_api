@@ -370,3 +370,31 @@ ALTER SEQUENCE public.seq_max_field
 ALTER TABLE public.field_mut_pattadar
 ALTER COLUMN striked_out TYPE character(1)
 USING LEFT(striked_out, 1);
+
+-- Table: public.supportive_document
+
+-- DROP TABLE IF EXISTS public.supportive_document;
+
+CREATE TABLE IF NOT EXISTS public.supportive_document
+(
+    id serial,
+    case_no character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    user_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    file_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    file_type character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    file_path character varying(200) COLLATE pg_catalog."default" NOT NULL,
+    date_entry timestamp without time zone NOT NULL,
+    mut_type character(10) COLLATE pg_catalog."default",
+    fetch_file_name character varying(200) COLLATE pg_catalog."default",
+    applid character varying(50) COLLATE pg_catalog."default",
+    dag_no character varying(20) COLLATE pg_catalog."default",
+    doc_flag character varying(2) COLLATE pg_catalog."default",
+    api_doc_id character varying(250) COLLATE pg_catalog."default",
+    active_status integer DEFAULT 0,
+    CONSTRAINT supportive_document_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.supportive_document
+    OWNER to postgres;
