@@ -389,9 +389,10 @@ class MutationDataController extends CI_Controller
         }
         // $lmData = $lmData['data'];
 
-        $data = json_decode(file_get_contents('php://input', true));
+        // $data = json_decode(file_get_contents('php://input', true));
 
-        $location = $data->location;
+
+        $location = $this->input->post('location', true);
         $locationArr = explode('-', $location);
         $dist_code = $locationArr[0];
         $subdiv_code = $locationArr[1];
@@ -399,29 +400,53 @@ class MutationDataController extends CI_Controller
         $mouza_pargona_code = $locationArr[3];
         $lot_no = $locationArr[4];
         $vill_townprt_code = $locationArr[5];
-        $patta_type_code = $data->patta_type_code;
-        $patta_no = $data->patta_no;
-        $dag_nos = $data->dag_nos;
-        $pattadars = $data->pattadars;
-        $inplace_alongwith = $data->inplace_alongwith;
-        $applicants = $data->applicants;
-        $transfer_type = $data->transfer_type;
-        $deed_date = $data->deed_date ? $data->deed_date : null;
-        $deed_no = $data->deed_no ? $data->deed_no : null;
-        $deed_value = $data->deed_value ? $data->deed_value : null;
-        $rajah_adalat = $data->rajah_adalat ? ($data->rajah_adalat == 'y' ? $data->rajah_adalat : '0') : '0';
-        $dispute = $data->dispute ? ($data->dispute == 'y' ? '1' : '0') : '0';
-        $applicant_possession = $data->applicant_possession ? $data->applicant_possession : null;
-        $m_bigha = $data->m_bigha;
-        $m_katha = $data->m_katha;
-        $m_lessa_chatak = $data->m_lessa_chatak;
-        $m_ganda = $data->m_ganda;
-        $remarks = $data->remarks;
+        $patta_type_code = $this->input->post('patta_type_code', true);
+        $patta_no = $this->input->post('patta_no', true);
+        $dag_nos = json_decode($this->input->post('dag_nos', true));
+        $pattadars = json_decode($this->input->post('pattadars', true));
+        $inplace_alongwith = json_decode($this->input->post('inplace_alongwith', true));
+        $applicants = json_decode($this->input->post('applicants', true));
+        $transfer_type = $this->input->post('transfer_type', true);
+        $deed_date = (isset($_POST['deed_date']) && !empty($_POST['deed_date'])) ? $this->input->post('deed_date', true) : null;
+        $deed_no = (isset($_POST['deed_no']) && !empty($_POST['deed_no'])) ? $this->input->post('deed_no', true) : null;
+        $deed_value = (isset($_POST['deed_value']) && !empty($_POST['deed_value'])) ? $this->input->post('deed_value', true) : null;
+        $rajah_adalat = (isset($_POST['rajah_adalat']) && !empty($_POST['rajah_adalat'])) ? ($this->input->post('rajah_adalat', true) == 'y' ? $this->input->post('rajah_adalat', true) : '0') : '0';
+        $dispute = (isset($_POST['dispute']) && !empty($_POST['dispute'])) ? ($this->input->post('dispute', true) == 'y' ? '1' : '0') : '0';
+        $applicant_possession = (isset($_POST['applicant_possession']) && !empty($_POST['applicant_possession'])) ? $this->input->post('applicant_possession', true) : null;
+        $m_bigha = $this->input->post('m_bigha', true);
+        $m_katha = $this->input->post('m_katha', true);
+        $m_lessa_chatak = $this->input->post('m_lessa_chatak', true);
+        $m_ganda = $this->input->post('m_ganda', true);
+        $remarks = $this->input->post('remarks', true);
 
 
-        // echo '<pre>';
-        // var_dump($data);
-        // die;
+        // $location = $data->location;
+        // $locationArr = explode('-', $location);
+        // $dist_code = $locationArr[0];
+        // $subdiv_code = $locationArr[1];
+        // $cir_code = $locationArr[2];
+        // $mouza_pargona_code = $locationArr[3];
+        // $lot_no = $locationArr[4];
+        // $vill_townprt_code = $locationArr[5];
+        // $patta_type_code = $data->patta_type_code;
+        // $patta_no = $data->patta_no;
+        // $dag_nos = $data->dag_nos;
+        // $pattadars = $data->pattadars;
+        // $inplace_alongwith = $data->inplace_alongwith;
+        // $applicants = $data->applicants;
+        // $transfer_type = $data->transfer_type;
+        // $deed_date = $data->deed_date ? $data->deed_date : null;
+        // $deed_no = $data->deed_no ? $data->deed_no : null;
+        // $deed_value = $data->deed_value ? $data->deed_value : null;
+        // $rajah_adalat = $data->rajah_adalat ? ($data->rajah_adalat == 'y' ? $data->rajah_adalat : '0') : '0';
+        // $dispute = $data->dispute ? ($data->dispute == 'y' ? '1' : '0') : '0';
+        // $applicant_possession = $data->applicant_possession ? $data->applicant_possession : null;
+        // $m_bigha = $data->m_bigha;
+        // $m_katha = $data->m_katha;
+        // $m_lessa_chatak = $data->m_lessa_chatak;
+        // $m_ganda = $data->m_ganda;
+        // $remarks = $data->remarks;
+
 
         if(empty($applicants)) {
              $this->output->set_status_header(401);
@@ -450,7 +475,14 @@ class MutationDataController extends CI_Controller
             return;
         }
 
-        
+        if(empty($inplace_alongwith)) {
+             $this->output->set_status_header(401);
+            echo json_encode([
+                'status' =>'n',
+                'msg' => 'Pattadar Inplace/Alongwith not found!'
+            ]);
+            return;
+        }
 
         $case_name = $this->MutationDataModel->generateCaseName($dist_code, $subdiv_code, $cir_code);
         $seq_pet = year_no . '000';
@@ -460,9 +492,68 @@ class MutationDataController extends CI_Controller
 
         $trans_code = explode('-', $transfer_type)[0];
         $type = explode('-', $transfer_type)[1];
-        
 
         $this->db->trans_begin();
+
+        if(!empty($_FILES)) {
+            foreach ($_FILES as $key => $value) {
+                $filename = $_FILES[$key]['name'];
+                $filetype = $_FILES[$key]['type'];
+                $tmpname = $_FILES[$key]['tmp_name'];
+                $filesize = $_FILES[$key]['size'];
+                $error = $_FILES[$key]['error'];
+
+                $exp  = explode("/",$filetype);
+                $ext = $exp[count($exp) - 1];
+
+                $filename = $key . '_' . $petition_no . '.' . $ext;
+
+                $upload_path = FCPATH . 'uploads/MutDocs/';
+
+                if (!is_dir($upload_path)) {
+                    mkdir($upload_path, 0777, true);
+                }
+
+                $config['upload_path']   = $upload_path;
+                $config['allowed_types'] = RESURVEY_FILE_TYPE;
+                $config['max_size']  = RESURVEY_MAX_SIZE;
+                $config['file_name'] = $filename;
+                $this->load->library('upload', $config);
+                $this->upload->initialize($config);
+                if(!$this->upload->do_upload($key)) {
+                    $this->db->trans_rollback();
+                    $this->output->set_status_header(500);
+                    echo json_encode([
+                        'status' =>'n',
+                        'msg' => 'Document not uploaded successfully!'
+                    ]);
+                    return;
+                }
+
+                $docInsertArr = [
+                    'case_no' => $case_no,
+                    'file_name' => strtoupper($key),
+                    'file_path' => 'uploads/MutDocs/',
+                    'file_type' => $filetype,
+                    'fetch_file_name' => $filename,
+                    'mut_type' => '01',
+                    'user_code' => $user_code,
+                    'date_entry' => date('Y-m-d H:i:s')
+                ];
+
+                $docInsertStatus = $this->db->insert('supportive_document', $docInsertArr);
+                if(!$docInsertStatus || $this->db->affected_rows() < 1) {
+                    $this->db->trans_rollback();
+                    $this->output->set_status_header(500);
+                    echo json_encode([
+                        'status' =>'n',
+                        'msg' => 'Document not updated!'
+                    ]);
+                    return;
+                }
+            }
+        }
+
         $basic = [
             'dist_code'=>$dist_code,
             'subdiv_code'=>$subdiv_code,
@@ -1005,6 +1096,8 @@ class MutationDataController extends CI_Controller
 
         $mutPattadar = $this->db->query("SELECT dag_no, patta_no, patta_type_code, pdar_id, pdar_name, pdar_guardian, striked_out, pdar_rel_guar, pdar_gender FROM field_mut_pattadar WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND case_no=?", [$coCases->dist_code, $coCases->subdiv_code, $coCases->cir_code, $coCases->mouza_pargona_code, $coCases->lot_no, $coCases->vill_townprt_code, $coCases->case_no])->result();
 
+        $mutDocs = $this->db->query("SELECT id, case_no, file_name, file_type, file_path, fetch_file_name FROM supportive_document WHERE case_no=?", [$coCases->case_no])->result();
+
         if(!empty($mutPetitioner)) {
             foreach ($mutPetitioner as $mutPet) {
                 $mutPet->guard_rel_name = $this->utilityclass->get_relation($mutPet->guard_rel);
@@ -1023,11 +1116,20 @@ class MutationDataController extends CI_Controller
             $coCases->patta_type_name = '';
         }
 
+        if(!empty($mutDocs)) {
+            foreach ($mutDocs as $mutDoc) {
+                $mutDoc->full_path = $mutDoc->file_path . $mutDoc->fetch_file_name;
+            }
+        }
+
+
+
         $row['case_details'] = $coCases;
         $row['case_status'] = $caseStatus;
         $row['dag_details'] = $dagDetails;
         $row['petitioners'] = $mutPetitioner;
         $row['pattadars'] = $mutPattadar;
+        $row['mut_docs'] = $mutDocs;
 
         // $finalArr = [$row];
 
