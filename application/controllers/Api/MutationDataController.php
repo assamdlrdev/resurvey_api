@@ -911,9 +911,11 @@ class MutationDataController extends CI_Controller
 
             if($mut->order_passed == 'y' && $mut->date_of_order != null && $mut->date_of_order != '') {
                 $mut->status = 'Order passed by CO';
+                $mut->status_flag = 'red';
             }
             else {
                 $mut->status = 'Order pending by CO';
+                $mut->status_flag = 'green';
             }
 
             // $total_area = 0;
