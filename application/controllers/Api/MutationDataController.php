@@ -896,7 +896,7 @@ class MutationDataController extends CI_Controller
         // var_dump($tokenData, $lmData);
         // die;
 
-        $mutBasic = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=?", [$lmData->dist_code, $lmData->subdiv_code, $lmData->cir_code, $lmData->mouza_pargona_code, $lmData->lot_no])->result();
+        $mutBasic = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND mut_type='01'", [$lmData->dist_code, $lmData->subdiv_code, $lmData->cir_code, $lmData->mouza_pargona_code, $lmData->lot_no])->result();
         if(empty($mutBasic)) {
             $this->output->set_status_header(500);
             echo json_encode([
@@ -1005,7 +1005,7 @@ class MutationDataController extends CI_Controller
 
         $this->dbswitch($dcode);
 
-        $cases = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=?", [$dcode, $subdiv_code, $cir_code])->result();
+        $cases = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mut_type='01'", [$dcode, $subdiv_code, $cir_code])->result();
 
         if(empty($cases)) {
             $this->output->set_status_header(500);
@@ -1063,7 +1063,7 @@ class MutationDataController extends CI_Controller
 
         $this->dbswitch($dcode);
 
-        $coCases = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND case_no=? AND (order_passed IS NULL OR order_passed != 'y')", [$dcode, $subdiv_code, $cir_code, $case_no])->row();
+        $coCases = $this->db->query("SELECT * FROM field_mut_basic WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND case_no=? AND mut_type='01' AND (order_passed IS NULL OR order_passed != 'y')", [$dcode, $subdiv_code, $cir_code, $case_no])->row();
 
         if(empty($coCases)) {
             $this->output->set_status_header(500);
@@ -1159,7 +1159,7 @@ class MutationDataController extends CI_Controller
 
         $this->dbswitch($dcode);
 
-        $fmb = $this->db->query("SELECT * FROM field_mut_basic WHERE case_no=?", [$case_no])->row();
+        $fmb = $this->db->query("SELECT * FROM field_mut_basic WHERE case_no=? AND mut_type='01'", [$case_no])->row();
 
         $dags = $this->db->query("SELECT * FROM field_mut_dag_details WHERE case_no=?", [$case_no])->result();
 
@@ -1167,7 +1167,7 @@ class MutationDataController extends CI_Controller
             $this->output->set_status_header(500);
             echo json_encode([
                 'status' =>'n',
-                'msg' => 'Could not find case details!'
+                'msg' => 'Could not find case details for mutation!'
             ]);
             return;
         }
