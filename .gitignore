@@ -3,6 +3,8 @@ index.php
 application/cache/*
 !application/cache/index.html
 
+application/controllers/Api/MutationDataController.php
+
 application/config/constants.php
 
 application/logs/*
