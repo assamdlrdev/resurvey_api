@@ -1,5 +1,5 @@
 .DS_Store
-
+index.php
 application/cache/*
 !application/cache/index.html
 
