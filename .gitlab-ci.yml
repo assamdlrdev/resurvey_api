@@ -7,7 +7,7 @@ deploy_prod:
   stage: deploy_prod
   script:
     - echo "Deploying to production server...!!"
-    - ssh -v opc@172.16.3.235 'sudo chown -R opc:opc /var/www/html/chithaapi_preprod && cd /var/www/html/chithaapi_preprod && git checkout main && git reset --hard origin/main && git pull origin main && sudo chown -R apache:apache /var/www/html/chithaapi_preprod'
+    - ssh -v opc@172.16.3.235 'sudo chown -R opc:opc /var/www/html/chithaapi && cd /var/www/html/chithaapi && git checkout main && git reset --hard origin/main && git pull origin main && sudo chown -R apache:apache /var/www/html/chithaapi'
     - echo "Deployment successful for production!!!!!"
   only:
     - main
