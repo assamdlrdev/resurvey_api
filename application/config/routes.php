@@ -137,7 +137,7 @@ $route['get_patta_numbers'] = 'Api/PartitionController/getPattaNumbers';
 $route['get_dag_numbers'] = 'Api/PartitionController/getDagNumbers';
 $route['get_dag_pattadar_info'] = 'Api/PartitionController/getDagPattadarInfo';
 $route['get_land_area_info'] = 'Api/PartitionController/getLandAreaInfo';
-
+$route['partition_lra'] = 'Api/PartitionController/LmForwardPartitionAplcnToCO';
 
 
 

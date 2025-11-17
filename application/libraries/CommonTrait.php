@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 trait CommonTrait
 {
@@ -39,7 +39,7 @@ trait CommonTrait
         '27' => 'lsp30',
         '26' => 'lsp31',
         'default' => 'default',
-        'auth'    => 'auth'
+        'auth' => 'auth'
     ];
 
     /**
@@ -70,5 +70,14 @@ trait CommonTrait
         } else {
             show_error("No database mapping found for dcode: {$dcode}");
         }
+    }
+
+    /**
+     * Get currently using DB name
+     * @return string
+     */
+    function getDb()
+    {
+        return $this->db->database;
     }
 }
