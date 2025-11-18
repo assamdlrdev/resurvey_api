@@ -40,5 +40,5 @@ application/config/constants.php
 nc_village_data
 vendor
 .htaccess
-
+/assets
 esign/tmp

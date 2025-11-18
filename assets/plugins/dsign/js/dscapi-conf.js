@@ -1,1 +1,0 @@
-var dscapibaseurl = "https://basundhara.assam.gov.in/dscapi/"
