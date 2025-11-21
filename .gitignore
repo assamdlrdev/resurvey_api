@@ -1,7 +1,9 @@
 .DS_Store
-
+index.php
 application/cache/*
 !application/cache/index.html
+
+application/controllers/Api/MutationDataController.php
 
 application/config/constants.php
 
@@ -40,5 +42,5 @@ application/config/constants.php
 nc_village_data
 vendor
 .htaccess
-
+/assets
 esign/tmp
