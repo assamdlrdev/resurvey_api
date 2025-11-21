@@ -1031,7 +1031,7 @@ class LocationController extends CI_Controller
         if ($_SERVER['CONTENT_TYPE'] == 'application/json') {
             $data = json_decode(file_get_contents('php://input', true));
             $msg = null;
-            
+
             if (!isset($data) || $data == null)
                 $msg = $msg . " Missing Parameters,";
 
@@ -1057,8 +1057,8 @@ class LocationController extends CI_Controller
             $partDag = $data->part_dag;
         } else {
             $msg = null;
-            
-            
+
+
             if (!isset($_POST['vill_townprt_code']) || empty($_POST['vill_townprt_code']))
                 $msg = $msg . " Missing Village Code,";
             if (!isset($_POST['dag_no']) || empty($_POST['dgetag_no']))
@@ -1100,8 +1100,7 @@ class LocationController extends CI_Controller
         $partDagDetailsChitha = $this->db->query('SELECT * FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=? AND survey_no=?', [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->row();
 
         if (!empty($partDagDetailsChitha)) {
-            $partDagDetailsChitha->from_chitha = 1;
-            $partDagDetailsChitha->from_bhunaksha = 0;
+            $partDagDetailsChitha->is_exists = 'Y';
 
             $possessors = $this->db->query("SELECT * FROM splitted_dags_possessors WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND old_dag_no=? AND part_dag=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $dag_no, $part_dag])->result();
             if (!empty($possessors)) {
@@ -1118,8 +1117,8 @@ class LocationController extends CI_Controller
                     $pattadar_relation_name = (!empty($pdar_relation_data)) ? $pdar_relation_data->guard_rel_desc_as . ' (' . $pdar_relation_data->guard_rel_desc . ')' : '';
 
                     $mode_of_acquisition_name = '';
-                    foreach(TRANSFER_TYPES as $key => $t_type) {
-                        if($key == $mode_of_acquisition) {
+                    foreach (TRANSFER_TYPES as $key => $t_type) {
+                        if ($key == $mode_of_acquisition) {
                             $mode_of_acquisition_name = $t_type;
                             break;
                         }
@@ -1128,7 +1127,7 @@ class LocationController extends CI_Controller
                     $possessor->guard_relation_name = $guard_relation_name;
                     $possessor->pattadar_relation_name = $pattadar_relation_name;
                     $possessor->mode_of_acquisition_name = $mode_of_acquisition_name;
-                    $possessor->ownership_documents = $this->db->query("select * from ownership_documents where possessor_u_id= ? ",[$possessor->possessor_u_id])->result();
+                    $possessor->ownership_documents = $this->db->query("select * from ownership_documents where possessor_u_id= ? ", [$possessor->possessor_u_id])->result();
                 }
             }
 
@@ -1149,7 +1148,6 @@ class LocationController extends CI_Controller
 
             $partDagDetailsChitha->pattadars = $pattadars;
             $partDagDetailsChitha->possessors = $possessors;
-
             $partDagDetailsChitha->tenants = $this->db->query("SELECT * FROM chitha_tenant WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND dag_no=?", [$dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $partDagDetailsChitha->survey_no])->result();
 
             $response = [
@@ -1160,71 +1158,22 @@ class LocationController extends CI_Controller
             $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
             echo json_encode($response);
             return;
-        }
+        } else {
+            $row = [];
+            $row['survey_no'] = $part_dag;
+            $row['is_exists'] = 'N';
 
-        //if not available then search in bhunaksha
-        $data = [];
-        $url = "/NicApi/PartDags";
-        $method = 'POST';
-        $data['locationCode'] = $dist_code . '_' . $subdiv_code . '_' . $cir_code . '_' . $mouza_pargona_code . '_' . $lot_no . '_' . $vill_townprt_code;
-        $data['oldDagNo'] = $dag_no;
-
-        $api_output = callLandhubAPIWithHeader($method, $url, $data);
-
-        if (empty($api_output) || $api_output['error'] != '' || $api_output['http_status'] != 200) {
-            log_message("error", 'LAND HUB API FAIL');
             $response = [
-                'status' => 'n',
-                'msg' => 'API Failed!'
+                'status' => 'y',
+                'msg' => 'Successfully retrieved data!',
+                'data' => $row
             ];
-            $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
+            $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
             echo json_encode($response);
             return;
         }
-
-        $partDags = $api_output['data']->partDags;
-        $locationCode = $api_output['data']->locationCode;
-        $inputOldDagNo = $api_output['data']->inputOldDagNo;
-
-        if (!empty($partDags)) {
-            foreach ($partDags as $pDag) {
-                $partDag = $pDag->newDagNo;
-                $dag_area_sqmtr = $pDag->plotArea;
-                //check in chitha whether created
-                if ($part_dag == $partDag) {
-                    $row = [];
-                    $row['survey_no'] = $partDag;
-                    $row['from_chitha'] = 0;
-                    $row['from_bhunaksha'] = 1;
-                    $row['dag_area_sqmtr'] = $dag_area_sqmtr;
-
-                    $response = [
-                        'status' => 'y',
-                        'msg' => 'Successfully retrieved data!',
-                        'data' => $row
-                    ];
-                    $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
-                    echo json_encode($response);
-                    return;
-                }
-            }
-        }
-
-        $row = [];
-        $row['survey_no'] = $part_dag;
-        $row['from_chitha'] = 0;
-        $row['from_bhunaksha'] = 0;
-        $row['dag_area_sqmtr'] = 0;
-
-        $response = [
-            'status' => 'y',
-            'msg' => 'Successfully retrieved data!',
-            'data' => $row
-        ];
-        $this->output->set_status_header(200);  // Change to 400, 401, 500, etc. as needed
-        echo json_encode($response);
-        return;
     }
+
 
     public function getLandRevenue()
     {

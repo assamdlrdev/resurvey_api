@@ -1233,27 +1233,37 @@ class PartDagController extends CI_Controller
         $possessor_id = $possessor->possessor_id;
         $old_photo_path = $possessor->photo_path;
 
-        if ($old_photo_path != null && file_exists($old_photo_path)) {
-            unlink($old_photo_path);
-        }
-
-
-        $photo_path = '';
-        if ($possessor_photo != null && isset($possessor_photo) && $possessor_photo !== '') {
-            $photo_data = base64_decode($possessor_photo);
-            $photo_name = 'possessor_' . $dist_code . $subdiv_code . $cir_code . $mouza_pargona_code . $lot_no . $vill_townprt_code . '_' . $possessor_id . '_' . time() . '.jpg';
-            $photo_path = 'uploads/possessors/' . $photo_name;
-            if (!file_put_contents($photo_path, $photo_data)) {
-                log_message('error', 'Could not save possessor photo!');
-                $response = [
-                    'status' => 'n',
-                    'msg' => 'Could not save possessor photo!'
-                ];
-                $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
-                echo json_encode($response);
-                return;
+        try {
+            // Check and delete the old photo if it exists
+            if ($old_photo_path != null && file_exists($old_photo_path)) {
+                if (!unlink($old_photo_path)) {
+                    throw new Exception('Could not delete old photo!');
+                }
             }
+
+            $photo_path = '';
+            if ($possessor_photo != null && isset($possessor_photo) && $possessor_photo !== '') {
+                // Decode the base64 photo data
+                $photo_data = base64_decode($possessor_photo);
+                $photo_name = 'possessor_' . $dist_code . $subdiv_code . $cir_code . $mouza_pargona_code . $lot_no . $vill_townprt_code . '_' . $possessor_id . '_' . time() . '.jpg';
+                $photo_path = 'uploads/possessors/' . $photo_name;
+
+                // Save the photo data to the path
+                if (!file_put_contents($photo_path, $photo_data)) {
+                    throw new Exception('Could not save possessor photo!');
+                }
+            }
+        } catch (Exception $e) {
+            log_message('error', $e->getMessage());  // Log the exception message
+            $response = [
+                'status' => 'n',
+                'msg' => $e->getMessage()
+            ];
+            $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
+            echo json_encode($response);
+            return;
         }
+
 
         $updateArr = [
             'photo_path' => $photo_path,
@@ -1618,7 +1628,7 @@ class PartDagController extends CI_Controller
                 'file_size'        => isset($doc['file_size']) ? $doc['file_size'] : null,
             ];
 
-            if($doc['document_issue_date'] != null && isset($doc['document_issue_date']) && $doc['document_issue_date'] !== ''){
+            if ($doc['document_issue_date'] != null && isset($doc['document_issue_date']) && $doc['document_issue_date'] !== '') {
                 $insert_data['document_issue_date'] = date('Y-m-d', strtotime($doc['document_issue_date']));
             } else {
                 // $insert_data['document_issue_date'] = null;
