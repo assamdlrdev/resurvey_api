@@ -29,10 +29,19 @@ class Dataentryuser_model extends CI_Model {
      * @param string $sort_dir
      * @return array of result objects
      */
-    public function get_users_paginated($limit, $offset, $filters = [], $sort_by = 'id', $sort_dir = 'asc')
+    public function get_users_paginated($limit, $offset, $filters = [], $sort_by = 'id', $sort_dir = 'asc',$user_type)
     {
         $this->db->select('serial_no, username, name, email, phone_no, user_role, dist_code, subdiv_code, cir_code');
         $this->db->from($this->table);
+
+        // ROLE FILTER
+        $allowed_roles   =   [];
+        if($user_type=='1' || $user_type=='2'){
+            $allowed_roles = ['00', '9', '10', '11', '14'];
+        }else if($user_type=='10'){
+            $allowed_roles = ['11', '14'];
+        }
+        $this->db->where_in('user_role', $allowed_roles);
 
         if (!empty($filters['search'])) {
             $term = '%' . $this->db->escape_like_str($filters['search']) . '%';
@@ -40,6 +49,8 @@ class Dataentryuser_model extends CI_Model {
             $this->db->like('username', $filters['search']);
             $this->db->or_like('name', $filters['search']);
             $this->db->or_like('email', $filters['search']);
+            $this->db->or_like('phone_no', $filters['search']);
+            $this->db->or_like('mobile_no', $filters['search']);
             $this->db->group_end();
         }
 
@@ -54,9 +65,17 @@ class Dataentryuser_model extends CI_Model {
     /**
      * Count users with same filters
      */
-    public function count_users($filters = [])
+    public function count_users($filters = [],$user_type)
     {
         $this->db->from($this->table);
+        // ROLE FILTER
+        $allowed_roles   =   [];
+        if($user_type=='1' || $user_type=='2'){
+            $allowed_roles = ['00', '9', '10', '11', '14'];
+        }else if($user_type=='10'){
+            $allowed_roles = ['11', '14'];
+        }
+        $this->db->where_in('user_role', $allowed_roles);
 
         if (!empty($filters['search'])) {
             $this->db->group_start();
@@ -84,42 +103,42 @@ class Dataentryuser_model extends CI_Model {
     }
 
 
-    /**
-     * Update user row by id
-     */
-    public function update_user($id, array $data)
-    {
-        if (empty($data)) return false;
-        $this->db->where('serial_no', (int)$id);
-        $this->db->update($this->table, $data);
-        return $this->db->affected_rows() >= 0; // >=0 because update with same data returns 0
-    }
+        /**
+         * Update user row by id
+         */
+        public function update_user($id, array $data)
+        {
+            if (empty($data)) return false;
+            $this->db->where('serial_no', (int)$id);
+            $this->db->update($this->table, $data);
+            return $this->db->affected_rows() >= 0; // >=0 because update with same data returns 0
+        }
 
-    /**
-     * Check email exists excluding a specific user id
-     */
-    public function email_exists_except($email, $except_id)
-    {
-        $q = $this->db->from($this->table)
-                    ->where('email', $email)
-                    ->where('serial_no !=', (int)$except_id)
-                    ->limit(1)
-                    ->get();
-        return $q->num_rows() > 0;
-    }
+        /**
+         * Check email exists excluding a specific user id
+         */
+        public function email_exists_except($email, $except_id)
+        {
+            $q = $this->db->from($this->table)
+                        ->where('email', $email)
+                        ->where('serial_no !=', (int)$except_id)
+                        ->limit(1)
+                        ->get();
+            return $q->num_rows() > 0;
+        }
 
-    /**
-     * Check phone exists excluding a specific user id
-     */
-    public function phone_exists_except($phone, $except_id)
-    {
-        $q = $this->db->from($this->table)
-                    ->where('phone_no', $phone)
-                    ->where('serial_no !=', (int)$except_id)
-                    ->limit(1)
-                    ->get();
-        return $q->num_rows() > 0;
-    }
+        /**
+         * Check phone exists excluding a specific user id
+         */
+        public function phone_exists_except($phone, $except_id)
+        {
+            $q = $this->db->from($this->table)
+                        ->where('phone_no', $phone)
+                        ->where('serial_no !=', (int)$except_id)
+                        ->limit(1)
+                        ->get();
+            return $q->num_rows() > 0;
+        }
 
 
 }

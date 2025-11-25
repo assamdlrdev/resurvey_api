@@ -4,7 +4,6 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class UserManagementController extends CI_Controller {
     public function __construct()
     {
-        // echo "asasa";
         parent::__construct();
         // load model & form_validation
         $this->load->model('Api/Dataentryuser_model');
@@ -207,6 +206,11 @@ class UserManagementController extends CI_Controller {
 
     public function list()
     {
+        $user_type  =  $this->jwt_data->usertype; 
+        // $user = $this->Dataentryuser_model->get_user_by_id($jwt['user_id']);
+        // print_r($this->jwt_data->usertype);
+        // print(json_decode($this->session->userdata));
+        // print(json_decode($this->UserModel::$ADMIN_CODE));
         // Read & sanitize inputs
         $page = (int) $this->input->get('page', TRUE) ?: 1;
         $limit = (int) $this->input->get('limit', TRUE) ?: 10;
@@ -233,10 +237,10 @@ class UserManagementController extends CI_Controller {
         }
 
         // total count
-        $total = $this->Dataentryuser_model->count_users($filters);
+        $total = $this->Dataentryuser_model->count_users($filters,$user_type);
 
         // fetch data
-        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir);
+        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir,$user_type);
 
         // map DB columns to desired json keys
         $data = array_map(function($u) {
