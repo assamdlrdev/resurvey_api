@@ -19,4 +19,107 @@ class Dataentryuser_model extends CI_Model {
         $q = $this->db->get_where($this->table, ['username' => $username], 1);
         return $q->num_rows() > 0;
     }
+
+    /**
+     * Get paginated users
+     * @param int $limit
+     * @param int $offset
+     * @param array $filters (supports 'search')
+     * @param string $sort_by
+     * @param string $sort_dir
+     * @return array of result objects
+     */
+    public function get_users_paginated($limit, $offset, $filters = [], $sort_by = 'id', $sort_dir = 'asc')
+    {
+        $this->db->select('serial_no, username, name, email, phone_no, user_role, dist_code, subdiv_code, cir_code');
+        $this->db->from($this->table);
+
+        if (!empty($filters['search'])) {
+            $term = '%' . $this->db->escape_like_str($filters['search']) . '%';
+            $this->db->group_start();
+            $this->db->like('username', $filters['search']);
+            $this->db->or_like('name', $filters['search']);
+            $this->db->or_like('email', $filters['search']);
+            $this->db->group_end();
+        }
+
+        // safe order by: column names validated in controller
+        $this->db->order_by($sort_by, $sort_dir);
+        $this->db->limit((int)$limit, (int)$offset);
+
+        $q = $this->db->get();
+        return $q->result();
+    }
+
+    /**
+     * Count users with same filters
+     */
+    public function count_users($filters = [])
+    {
+        $this->db->from($this->table);
+
+        if (!empty($filters['search'])) {
+            $this->db->group_start();
+            $this->db->like('username', $filters['search']);
+            $this->db->or_like('name', $filters['search']);
+            $this->db->or_like('email', $filters['search']);
+            $this->db->group_end();
+        }
+
+        return (int) $this->db->count_all_results();
+    }
+
+    public function get_user_by_id($id)
+    {
+        $this->db->select('serial_no, username, name, email, phone_no, user_role, dist_code, subdiv_code, cir_code');
+        $this->db->from($this->table);
+        $this->db->where('serial_no', (int)$id);
+        $this->db->limit(1);
+        $q = $this->db->get();
+
+        if ($q && $q->num_rows() > 0) {
+            return $q->row();
+        }
+        return null;
+    }
+
+
+    /**
+     * Update user row by id
+     */
+    public function update_user($id, array $data)
+    {
+        if (empty($data)) return false;
+        $this->db->where('serial_no', (int)$id);
+        $this->db->update($this->table, $data);
+        return $this->db->affected_rows() >= 0; // >=0 because update with same data returns 0
+    }
+
+    /**
+     * Check email exists excluding a specific user id
+     */
+    public function email_exists_except($email, $except_id)
+    {
+        $q = $this->db->from($this->table)
+                    ->where('email', $email)
+                    ->where('serial_no !=', (int)$except_id)
+                    ->limit(1)
+                    ->get();
+        return $q->num_rows() > 0;
+    }
+
+    /**
+     * Check phone exists excluding a specific user id
+     */
+    public function phone_exists_except($phone, $except_id)
+    {
+        $q = $this->db->from($this->table)
+                    ->where('phone_no', $phone)
+                    ->where('serial_no !=', (int)$except_id)
+                    ->limit(1)
+                    ->get();
+        return $q->num_rows() > 0;
+    }
+
+
 }

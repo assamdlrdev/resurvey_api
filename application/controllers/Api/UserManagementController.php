@@ -8,6 +8,8 @@ class UserManagementController extends CI_Controller {
         parent::__construct();
         // load model & form_validation
         $this->load->model('Api/Dataentryuser_model');
+        $this->load->model('UserModel');
+        $this->load->model('Api/LocationModel');
         $this->load->library('form_validation');
         $this->load->helper(array('url','security'));
 
@@ -202,4 +204,280 @@ class UserManagementController extends CI_Controller {
         // fallback (very unlikely)
         return substr($base, 0, 5);
     }
+
+    public function list()
+    {
+        // Read & sanitize inputs
+        $page = (int) $this->input->get('page', TRUE) ?: 1;
+        $limit = (int) $this->input->get('limit', TRUE) ?: 10;
+        $search = $this->input->get('search', TRUE);
+        $sort_by = $this->input->get('sort_by', TRUE) ?: 'id';
+        $sort_dir = strtolower($this->input->get('sort_dir', TRUE) ?: 'asc');
+        $sort_dir = ($sort_dir === 'desc') ? 'desc' : 'asc';
+
+        // sanitize sort_by to allowed columns (prevent SQL injection)
+        $allowed_sort = ['serial_no','username','name','email','phone_no','user_role','dist_code','subdiv_code','cir_code'];
+        if (! in_array($sort_by, $allowed_sort, true)) {
+            $sort_by = 'serial_no';
+        }
+
+        if ($limit < 1) $limit = 10;
+        $offset = ($page - 1) * $limit;
+        if ($offset < 0) $offset = 0;
+
+        // Build filters
+        $filters = [];
+        if ($search) {
+            // we'll let the model handle the search safely
+            $filters['search'] = $search;
+        }
+
+        // total count
+        $total = $this->Dataentryuser_model->count_users($filters);
+
+        // fetch data
+        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir);
+
+        // map DB columns to desired json keys
+        $data = array_map(function($u) {
+            return [
+                'id' => (int)$u->serial_no,
+                'username' => $u->username,
+                'name' => $u->name,
+                'email' => isset($u->email) ? $u->email : null,
+                'phone_no' => $u->phone_no,
+                'role'      => $this->UserModel->getRoleNameFromCode($u->user_role),
+                // 'district_code' => $u->dist_code,
+                'district' => $this->LocationModel->getDistrict($u->dist_code),
+                'circle' => $this->LocationModel->getCircle($u->dist_code, $u->subdiv_code, $u->cir_code),
+                // 'subdiv_code' =>  $u->subdiv_code,
+            ];
+        }, $users);
+
+        $response = [
+            'data'  => $data,
+            'total' => (int)$total,
+            'page'  => (int)$page,
+            'limit' => (int)$limit
+        ];
+
+        echo json_encode($response);
+    }
+
+    public function show($id = null)
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($id === null || !ctype_digit((string)$id)) {
+            http_response_code(400);
+            echo json_encode([
+                'status' => 0,
+                'message' => 'Invalid user id'
+            ]);
+            return;
+        }
+
+        try {
+            $user = $this->Dataentryuser_model->get_user_by_id((int)$id);
+
+            if (!$user) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 0,
+                    'message' => 'User not found'
+                ]);
+                return;
+            }
+
+            // role name
+            $roleName = $this->UserModel->getRoleNameFromCode($user->user_role);
+
+            // district object
+            $districtInfo = $this->LocationModel->getDistrict(
+                $user->dist_code
+            );
+            
+            // circle object
+            $circleInfo = $this->LocationModel->getCircle(
+                $user->dist_code,
+                $user->subdiv_code,
+                $user->cir_code
+            );
+
+            // final data format
+            $data = [
+                'id'        => (int)$user->serial_no,
+                'username'  => $user->username,
+                'name'      => $user->name,
+                'email'     => $user->email ?? null,
+                'phone_no'  => $user->phone_no,
+                'role'      => $roleName,
+
+                // object, not string
+                'district' => $districtInfo,
+                'circle'   => $circleInfo
+            ];
+
+            echo json_encode([
+                'status' => 1,
+                'data'   => $data
+            ]);
+
+        } catch (Throwable $e) {
+            log_message('error', 'UserController::show error: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'status' => 0,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Update user (only: name, email, phone_no, password)
+     * Accepts JSON body or form-encoded data.
+     * URL: /index.php/api/users/{id}
+     */
+    public function update($id = null)
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        // basic id check
+        if ($id === null || !ctype_digit((string)$id)) {
+            http_response_code(400);
+            echo json_encode(['status'=>0,'message'=>'Invalid user id']);
+            return;
+        }
+
+        // read JSON body (or fallback to post)
+        $raw = trim(file_get_contents("php://input"));
+        $data = [];
+        if (!empty($raw)) {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $data = $decoded;
+            }
+        }
+        if (empty($data)) {
+            $data = $this->input->post();
+        }
+
+        // only allow these fields
+        $input = [
+            'name'     => isset($data['name']) ? $this->security->xss_clean($data['name']) : null,
+            'email'    => isset($data['email']) ? $this->security->xss_clean($data['email']) : null,
+            'phone_no' => isset($data['phone_no']) ? $this->security->xss_clean($data['phone_no']) : null,
+            'password' => isset($data['password']) ? $data['password'] : null, // do NOT xss_clean password
+        ];
+
+        // load form validation & set data
+        $this->load->library('form_validation');
+        $this->form_validation->reset_validation();
+        $this->form_validation->set_data($input);
+
+        // rules: only validate if value provided (optional fields)
+        $this->form_validation->set_rules('name', 'Full name', 'trim|max_length[255]');
+        $this->form_validation->set_rules('email', 'Email', 'trim|valid_email');
+        $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|numeric|exact_length[10]');
+        $this->form_validation->set_rules('password', 'Password', 'trim|min_length[6]');
+
+        // run basic validation
+        if ($this->form_validation->run() === FALSE) {
+            http_response_code(422);
+            echo json_encode([
+                'status' => 0,
+                'message' => 'Validation failed',
+                'errors' => $this->form_validation->error_array()
+            ]);
+            return;
+        }
+
+        // load model(s)
+        $this->load->model('Dataentryuser_model');
+
+        // check user exists
+        $existing = $this->Dataentryuser_model->get_user_by_id((int)$id);
+        if (!$existing) {
+            http_response_code(404);
+            echo json_encode(['status'=>0,'message'=>'User not found']);
+            return;
+        }
+
+        // uniqueness checks (exclude current user)
+        $errors = [];
+
+        if (!empty($input['email'])) {
+            if ($this->Dataentryuser_model->email_exists_except($input['email'], (int)$id)) {
+                $errors['email'] = 'Email is already in use.';
+            }
+        }
+
+        if (!empty($input['phone_no'])) {
+            if ($this->Dataentryuser_model->phone_exists_except($input['phone_no'], (int)$id)) {
+                $errors['phone_no'] = 'Phone number is already in use.';
+            }
+        }
+
+        if (!empty($errors)) {
+            http_response_code(422);
+            echo json_encode(['status'=>0,'message'=>'Validation failed','errors'=>$errors]);
+            return;
+        }
+
+        // prepare update array (only include fields provided)
+        $update = [];
+        if ($input['name'] !== null)     $update['name'] = $input['name'];
+        if ($input['email'] !== null)    $update['email'] = $input['email'];
+        if ($input['phone_no'] !== null) {
+            $update['phone_no'] = $input['phone_no'];
+            // optional: mirror mobile_no as in create
+            $update['mobile_no'] = $input['phone_no'];
+        }
+        if (!empty($input['password'])) {
+            $update['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
+        }
+        if (empty($update)) {
+            // nothing to update
+            echo json_encode(['status'=>1,'message'=>'No changes','data'=>[]]);
+            return;
+        }
+
+        // perform update inside transaction
+        $this->db->trans_begin();
+        $ok = $this->Dataentryuser_model->update_user((int)$id, $update);
+
+        if ($this->db->trans_status() === FALSE || !$ok) {
+            $this->db->trans_rollback();
+            http_response_code(500);
+            echo json_encode(['status'=>0,'message'=>'Failed to update user']);
+            return;
+        }
+
+        $this->db->trans_commit();
+
+        // return updated user (optional: fetch again)
+        $user = $this->Dataentryuser_model->get_user_by_id((int)$id);
+
+
+        $roleName = $this->UserModel->getRoleNameFromCode($user->user_role);
+        $districtInfo = $this->LocationModel->getDistrict($user->dist_code);
+        $circleInfo = $this->LocationModel->getCircle($user->dist_code, $user->subdiv_code, $user->cir_code);
+
+        $respData = [
+            'id'       => (int)$user->serial_no,
+            'username' => $user->username,
+            'name'     => $user->name,
+            'email'    => $user->email ?? null,
+            'phone_no' => $user->phone_no,
+            'role'     => $roleName,
+            'district' => $districtInfo,
+            'circle'   => $circleInfo
+        ];
+
+        echo json_encode(['status'=>1,'message'=>'User updated','data'=>$respData]);
+    }
+
+
+
+        
 }
