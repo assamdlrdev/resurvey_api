@@ -44,13 +44,25 @@ class Dataentryuser_model extends CI_Model {
         $this->db->where_in('user_role', $allowed_roles);
 
         if (!empty($filters['search'])) {
-            $term = '%' . $this->db->escape_like_str($filters['search']) . '%';
-            $this->db->group_start();
-            $this->db->like('username', $filters['search']);
-            $this->db->or_like('name', $filters['search']);
-            $this->db->or_like('email', $filters['search']);
-            $this->db->or_like('phone_no', $filters['search']);
-            $this->db->or_like('mobile_no', $filters['search']);
+            // normalize and split into words
+            $search = trim($filters['search']);
+            $search = preg_replace('/\s+/', ' ', $search);        // collapse spaces
+            $search = mb_strtolower($search);                    // lowercase (multibyte-safe)
+            $words = explode(' ', $search);
+
+            $this->db->group_start(); // outer group for all words (AND)
+            foreach ($words as $idx => $w) {
+                $w = $this->db->escape_like_str($w);            // escape wildcards
+                // For each word, require it appears in ANY of these columns (OR)
+                $this->db->group_start();
+                $this->db->like('LOWER(username)', $w);
+                $this->db->or_like('LOWER(name)', $w);
+                $this->db->or_like('LOWER(email)', $w);
+                $this->db->or_like('LOWER(phone_no)', $w);
+                $this->db->or_like('LOWER(mobile_no)', $w);
+                $this->db->group_end();
+                // Because outer group is AND, each word must match somewhere
+            }
             $this->db->group_end();
         }
 
