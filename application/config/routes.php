@@ -128,6 +128,11 @@ $route['api/report/collection'] = 'Api/ReportApiController/collection_report';
 //maps api
 $route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map_data';
 
+//user management
+$route['api/users/create'] = 'Api/UserManagementController/create';
+$route['api/users/list']   = 'Api/UserManagementController/list';
+$route['api/users/(:num)'] = 'Api/UserManagementController/show/$1';
+$route['api/users/(:num)/update']['post']  = 'Api/UserManagementController/update/$1';
 
 
 
