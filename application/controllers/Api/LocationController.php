@@ -1175,6 +1175,7 @@ class LocationController extends CI_Controller
     }
 
 
+
     public function getLandRevenue()
     {
         $this->load->helper('cookie');
