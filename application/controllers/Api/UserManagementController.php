@@ -11,6 +11,7 @@ class UserManagementController extends CI_Controller {
         $this->load->model('Api/LocationModel');
         $this->load->library('form_validation');
         $this->load->helper(array('url','security'));
+        $this->load->model('Api/Designation_model');
 
         // Force JSON responses
         header('Content-Type: application/json; charset=utf-8');
@@ -64,6 +65,7 @@ class UserManagementController extends CI_Controller {
             'name'        => isset($data['name'])        ? $this->security->xss_clean($data['name'])        : null,
             'phone_no'    => isset($data['phone_no'])    ? $this->security->xss_clean($data['phone_no'])    : null,
             'email'   => isset($data['email'])   ? $this->security->xss_clean($data['email'])   : null,
+            'designation'   => isset($data['designation'])   ? $this->security->xss_clean($data['designation'])   : null,
         ];
 
         // Setup validation rules (programmatic)
@@ -79,6 +81,7 @@ class UserManagementController extends CI_Controller {
         $this->form_validation->set_rules('name', 'Full name', 'trim|required|max_length[255]');
         $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|required|numeric|exact_length[10]|callback_phone_unique');
         $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
+        $this->form_validation->set_rules('designation', 'Designation Code', 'trim|regex_match[/^[0-9]{2}$/]');
 
         $parts = explode("-", $input['cir_code']);
 
@@ -108,7 +111,8 @@ class UserManagementController extends CI_Controller {
             'name'        => $input['name'],
             'phone_no'    => $input['phone_no'],
             'mobile_no'   => $input['phone_no'],
-            'email'   => $input['email'],
+            'email'       => $input['email'],
+            'designation' => $input['designation'],
             'user_status' => 'E',
             'date_of_creation'  => date('Y-m-d H:i:s'),
         ];
@@ -220,7 +224,7 @@ class UserManagementController extends CI_Controller {
         $sort_dir = ($sort_dir === 'desc') ? 'desc' : 'asc';
 
         // sanitize sort_by to allowed columns (prevent SQL injection)
-        $allowed_sort = ['serial_no','username','name','email','phone_no','user_role','dist_code','subdiv_code','cir_code'];
+        $allowed_sort = ['serial_no','username','name','email','phone_no','user_role','dist_code','subdiv_code','cir_code','designation'];
         if (! in_array($sort_by, $allowed_sort, true)) {
             $sort_by = 'serial_no';
         }
@@ -241,6 +245,7 @@ class UserManagementController extends CI_Controller {
 
         // fetch data
         $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir,$user_type);
+        // print_r($users);
 
         // map DB columns to desired json keys
         $data = array_map(function($u) {
@@ -255,6 +260,8 @@ class UserManagementController extends CI_Controller {
                 'district' => $this->LocationModel->getDistrict($u->dist_code),
                 'circle' => $this->LocationModel->getCircle($u->dist_code, $u->subdiv_code, $u->cir_code),
                 // 'subdiv_code' =>  $u->subdiv_code,
+                'designation'   =>  $this->Designation_model->get_by_code($u->designation)
+                // 'designation'   =>  $u->designation
             ];
         }, $users);
 
@@ -479,6 +486,51 @@ class UserManagementController extends CI_Controller {
         ];
 
         echo json_encode(['status'=>1,'message'=>'User updated','data'=>$respData]);
+    }
+
+
+    /**
+     * GET /api/designations?role=002
+     * Returns designation list based on role code (static array)
+     */
+    public function designations_by_role()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $role = $this->input->get('role', TRUE);
+
+        if (empty($role)) {
+            echo json_encode(['status' => 0, 'message' => 'Role code is required', 'data' => []]);
+            return;
+        }
+
+        // Normalize role: "010" -> "10", "014" -> "14"
+        $role = (string)(int)$role;
+
+        $role_map = [
+            '10' => ['01','02','03','04','05','06','07','08','09'],
+            '14' => ['10'],
+            '15' => ['10','11'],
+        ];
+
+        if (!isset($role_map[$role]) || empty($role_map[$role])) {
+            echo json_encode(['status' => 0, 'data' => []]);
+            return;
+        }
+
+        $codes = $role_map[$role];
+
+        
+        $rows = $this->Designation_model->get_by_codes($codes);
+
+        $result = array_map(function($r) {
+            return [
+                'designation_code' => $r['designation_code'],
+                'designation_name' => $r['designation_name']
+            ];
+        }, $rows);
+
+        echo json_encode(['status' => 1, 'data' => $result]);
     }
 
 

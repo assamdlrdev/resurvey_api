@@ -3,11 +3,11 @@
 class UserModel extends CI_Model
 {
     public static $DEO_CODE = '00';
-    public static $ADMIN_CODE = '1';
+    public static $ADMIN_CODE = '1';//district admin
     public static $SUPERADMIN_CODE = '2';
-    public static $LM_CODE = '3';
+    public static $LM_CODE = '3'; //LRA
     public static $CO_CODE = '4';
-    public static $SK_CODE = '5';
+    public static $SK_CODE = '5';//Lrs
     public static $ADC_CODE = '6';
     public static $DC_CODE = '7';
     public static $SDO_CODE = '8';
@@ -16,8 +16,8 @@ class UserModel extends CI_Model
     public static $SURVEYOR_CODE = '11';
     public static $SPMU_CODE = '12';
     public static $SURVEY_SUPER_ADMIN_CODE = '13';
-    public static $SURVEY_GIS_ASSISTANT_CODE = '14';
-
+    public static $SURVEY_GIS_ASSISTANT_CODE = '14';//circle
+    public static $STATE_GIS_CODE = '15';// state
 
     public static $USER_ACTIVITY_LOGIN = 'LOGIN';
     public static $USER_ACTIVITY_PW_CHANGED = 'PASSWORD_UPDATED';
@@ -468,4 +468,7 @@ class UserModel extends CI_Model
 
         return $users;
     }
+
+
+    
 }
