@@ -587,6 +587,59 @@ class LocationModel extends CI_Model
         // ]);
         // exit;
     }
+
+    public function getDistrict($input_string)
+    {
+        // ensure we use query builder (prevents SQL injection)
+        $q = $this->db
+            ->select('dist_code, loc_name, locname_eng')
+            ->from('location')           
+            ->where([
+                'dist_code'=> $input_string,
+                'subdiv_code'=> '00',
+                'cir_code'=> '00',
+                ])
+            ->limit(1)
+            ->get();
+
+        if ($q && $q->num_rows() > 0) {
+            return $q->row();   // returns object: ->loc_name, ->locname_eng
+        }
+
+        return [
+                "dist_code" => $input_string,
+                "loc_name"=> "",
+                "locname_eng"=> ""
+            ];
+    }
+
+    public function getCircle($dist_code,$subdiv_code,$cir_code)
+    {
+        // ensure we use query builder (prevents SQL injection)
+        $q = $this->db
+            ->select('dist_code, subdiv_code, cir_code, loc_name, locname_eng')
+            ->from('location')           
+            ->where([
+                'dist_code'=> $dist_code,
+                'subdiv_code'=> $subdiv_code,
+                'cir_code'=> $cir_code,
+                'mouza_pargona_code'=> "00",
+            ])
+            ->limit(1)
+            ->get();
+
+        if ($q && $q->num_rows() > 0) {
+            return $q->row();   // returns object: ->loc_name, ->locname_eng
+        }
+
+        return [
+                'dist_code' => $dist_code,
+                'subdiv_code'=> $subdiv_code,
+                'cir_code'=> $cir_code,
+                'loc_name'=> "",
+                'locname_eng'=> ""
+            ];
+    }
 }
 
 ?>
