@@ -63,7 +63,7 @@ class UserManagementController extends CI_Controller {
             'username'    => isset($data['username'])    ? $this->security->xss_clean($data['username'])    : null,
             'password'    => isset($data['password'])    ? $data['password'] : null, // don't xss_clean password
             'name'        => isset($data['name'])        ? $this->security->xss_clean($data['name'])        : null,
-            'phone_no'    => isset($data['phone_no'])    ? $this->security->xss_clean($data['phone_no'])    : null,
+            'mobile_no'    => isset($data['mobile_no'])    ? $this->security->xss_clean($data['mobile_no'])    : null,
             'email'   => isset($data['email'])   ? $this->security->xss_clean($data['email'])   : null,
             'designation'   => isset($data['designation'])   ? $this->security->xss_clean($data['designation'])   : null,
         ];
@@ -79,7 +79,7 @@ class UserManagementController extends CI_Controller {
         $this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[3]|max_length[50]|alpha_numeric|callback__username_unique_api');
         $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[6]');
         $this->form_validation->set_rules('name', 'Full name', 'trim|required|max_length[255]');
-        $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|required|numeric|exact_length[10]|callback_phone_unique');
+        $this->form_validation->set_rules('mobile_no', 'Phone no', 'trim|required|numeric|exact_length[10]|callback_phone_unique');
         $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
         $this->form_validation->set_rules('designation', 'Designation Code', 'trim|regex_match[/^[0-9]{2}$/]');
 
@@ -109,8 +109,8 @@ class UserManagementController extends CI_Controller {
             'username'    => $input['username'],
             'password'    => sha1($input['password']),
             'name'        => $input['name'],
-            // 'phone_no'    => $input['phone_no'],
-            'mobile_no'   => $input['phone_no'],
+            // 'mobile_no'    => $input['mobile_no'],
+            'mobile_no'   => $input['mobile_no'],
             'email'       => $input['email'],
             'designation' => $input['designation'],
             'user_status' => 'E',
@@ -167,7 +167,7 @@ class UserManagementController extends CI_Controller {
     public function phone_unique($phone)
     {
         $exists = $this->db
-            ->where('phone_no', $phone)
+            ->where('mobile_no', $phone)
             ->get('dataentryusers')
             ->row();
 
@@ -224,7 +224,7 @@ class UserManagementController extends CI_Controller {
         $sort_dir = ($sort_dir === 'desc') ? 'desc' : 'asc';
 
         // sanitize sort_by to allowed columns (prevent SQL injection)
-        $allowed_sort = ['serial_no','username','name','email','phone_no','user_role','dist_code','subdiv_code','cir_code','designation'];
+        $allowed_sort = ['serial_no','username','name','email','mobile_no','user_role','dist_code','subdiv_code','cir_code','designation'];
         if (! in_array($sort_by, $allowed_sort, true)) {
             $sort_by = 'serial_no';
         }
@@ -254,7 +254,7 @@ class UserManagementController extends CI_Controller {
                 'username' => $u->username,
                 'name' => $u->name,
                 'email' => isset($u->email) ? $u->email : null,
-                'phone_no' => $u->phone_no,
+                'mobile_no' => $u->mobile_no,
                 'role'      => $this->UserModel->getRoleNameFromCode($u->user_role),
                 // 'district_code' => $u->dist_code,
                 'district' => $this->LocationModel->getDistrict($u->dist_code),
@@ -321,7 +321,7 @@ class UserManagementController extends CI_Controller {
                 'username'  => $user->username,
                 'name'      => $user->name,
                 'email'     => $user->email ?? null,
-                'phone_no'  => $user->phone_no,
+                'mobile_no'  => $user->mobile_no,
                 'role'      => $roleName,
 
                 // object, not string
@@ -345,7 +345,7 @@ class UserManagementController extends CI_Controller {
     }
 
     /**
-     * Update user (only: name, email, phone_no, password)
+     * Update user (only: name, email, mobile_no, password)
      * Accepts JSON body or form-encoded data.
      * URL: /index.php/api/users/{id}
      */
@@ -377,7 +377,7 @@ class UserManagementController extends CI_Controller {
         $input = [
             'name'     => isset($data['name']) ? $this->security->xss_clean($data['name']) : null,
             'email'    => isset($data['email']) ? $this->security->xss_clean($data['email']) : null,
-            'phone_no' => isset($data['phone_no']) ? $this->security->xss_clean($data['phone_no']) : null,
+            'mobile_no' => isset($data['mobile_no']) ? $this->security->xss_clean($data['mobile_no']) : null,
             'password' => isset($data['password']) ? $data['password'] : null, // do NOT xss_clean password
         ];
 
@@ -389,7 +389,7 @@ class UserManagementController extends CI_Controller {
         // rules: only validate if value provided (optional fields)
         $this->form_validation->set_rules('name', 'Full name', 'trim|max_length[255]');
         $this->form_validation->set_rules('email', 'Email', 'trim|valid_email');
-        $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|numeric|exact_length[10]');
+        $this->form_validation->set_rules('mobile_no', 'Phone no', 'trim|numeric|exact_length[10]');
         $this->form_validation->set_rules('password', 'Password', 'trim|min_length[6]');
 
         // run basic validation
@@ -423,9 +423,9 @@ class UserManagementController extends CI_Controller {
             }
         }
 
-        if (!empty($input['phone_no'])) {
-            if ($this->Dataentryuser_model->phone_exists_except($input['phone_no'], (int)$id)) {
-                $errors['phone_no'] = 'Phone number is already in use.';
+        if (!empty($input['mobile_no'])) {
+            if ($this->Dataentryuser_model->phone_exists_except($input['mobile_no'], (int)$id)) {
+                $errors['mobile_no'] = 'Phone number is already in use.';
             }
         }
 
@@ -439,10 +439,10 @@ class UserManagementController extends CI_Controller {
         $update = [];
         if ($input['name'] !== null)     $update['name'] = $input['name'];
         if ($input['email'] !== null)    $update['email'] = $input['email'];
-        if ($input['phone_no'] !== null) {
-            $update['phone_no'] = $input['phone_no'];
+        if ($input['mobile_no'] !== null) {
+            // $update['mobile_no'] = $input['mobile_no'];
             // optional: mirror mobile_no as in create
-            $update['mobile_no'] = $input['phone_no'];
+            $update['mobile_no'] = $input['mobile_no'];
         }
         if (!empty($input['password'])) {
             $update['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
@@ -479,7 +479,7 @@ class UserManagementController extends CI_Controller {
             'username' => $user->username,
             'name'     => $user->name,
             'email'    => $user->email ?? null,
-            'phone_no' => $user->phone_no,
+            'mobile_no' => $user->mobile_no,
             'role'     => $roleName,
             'district' => $districtInfo,
             'circle'   => $circleInfo
