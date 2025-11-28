@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class UserManagementController extends CI_Controller {
+class UserManagementController extends CI_Controller
+{
     public function __construct()
     {
         parent::__construct();
@@ -10,7 +11,7 @@ class UserManagementController extends CI_Controller {
         $this->load->model('UserModel');
         $this->load->model('Api/LocationModel');
         $this->load->library('form_validation');
-        $this->load->helper(array('url','security'));
+        $this->load->helper(array('url', 'security'));
         $this->load->model('Api/Designation_model');
 
         // Force JSON responses
@@ -210,7 +211,7 @@ class UserManagementController extends CI_Controller {
 
     public function list()
     {
-        $user_type  =  $this->jwt_data->usertype; 
+        $user_type  =  $this->jwt_data->usertype;
         // $user = $this->Dataentryuser_model->get_user_by_id($jwt['user_id']);
         // print_r($this->jwt_data->usertype);
         // print(json_decode($this->session->userdata));
@@ -224,7 +225,7 @@ class UserManagementController extends CI_Controller {
         $sort_dir = ($sort_dir === 'desc') ? 'desc' : 'asc';
 
         // sanitize sort_by to allowed columns (prevent SQL injection)
-        $allowed_sort = ['serial_no','username','name','email','mobile_no','user_role','dist_code','subdiv_code','cir_code','designation'];
+        $allowed_sort = ['serial_no', 'username', 'name', 'email', 'mobile_no', 'user_role', 'dist_code', 'subdiv_code', 'cir_code', 'designation'];
         if (! in_array($sort_by, $allowed_sort, true)) {
             $sort_by = 'serial_no';
         }
@@ -241,14 +242,14 @@ class UserManagementController extends CI_Controller {
         }
 
         // total count
-        $total = $this->Dataentryuser_model->count_users($filters,$user_type);
+        $total = $this->Dataentryuser_model->count_users($filters, $user_type);
 
         // fetch data
-        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir,$user_type);
+        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir, $user_type);
         // print_r($users);
 
         // map DB columns to desired json keys
-        $data = array_map(function($u) {
+        $data = array_map(function ($u) {
             return [
                 'id' => (int)$u->serial_no,
                 'username' => $u->username,
@@ -307,7 +308,7 @@ class UserManagementController extends CI_Controller {
             $districtInfo = $this->LocationModel->getDistrict(
                 $user->dist_code
             );
-            
+
             // circle object
             $circleInfo = $this->LocationModel->getCircle(
                 $user->dist_code,
@@ -333,7 +334,6 @@ class UserManagementController extends CI_Controller {
                 'status' => 1,
                 'data'   => $data
             ]);
-
         } catch (Throwable $e) {
             log_message('error', 'UserController::show error: ' . $e->getMessage());
             http_response_code(500);
@@ -356,7 +356,7 @@ class UserManagementController extends CI_Controller {
         // basic id check
         if ($id === null || !ctype_digit((string)$id)) {
             http_response_code(400);
-            echo json_encode(['status'=>0,'message'=>'Invalid user id']);
+            echo json_encode(['status' => 0, 'message' => 'Invalid user id']);
             return;
         }
 
@@ -379,6 +379,9 @@ class UserManagementController extends CI_Controller {
             'email'    => isset($data['email']) ? $this->security->xss_clean($data['email']) : null,
             'mobile_no' => isset($data['mobile_no']) ? $this->security->xss_clean($data['mobile_no']) : null,
             'password' => isset($data['password']) ? $data['password'] : null, // do NOT xss_clean password
+            'district' => isset($data['district']) ? $this->security->xss_clean($data['district']) : null,
+            'circle'   => isset($data['circle']) ? $this->security->xss_clean($data['circle']) : null,
+            'subdivision'   => isset($data['subdivision']) ? $this->security->xss_clean($data['subdivision']) : null
         ];
 
         // load form validation & set data
@@ -410,7 +413,7 @@ class UserManagementController extends CI_Controller {
         $existing = $this->Dataentryuser_model->get_user_by_id((int)$id);
         if (!$existing) {
             http_response_code(404);
-            echo json_encode(['status'=>0,'message'=>'User not found']);
+            echo json_encode(['status' => 0, 'message' => 'User not found']);
             return;
         }
 
@@ -431,7 +434,7 @@ class UserManagementController extends CI_Controller {
 
         if (!empty($errors)) {
             http_response_code(422);
-            echo json_encode(['status'=>0,'message'=>'Validation failed','errors'=>$errors]);
+            echo json_encode(['status' => 0, 'message' => 'Validation failed', 'errors' => $errors]);
             return;
         }
 
@@ -447,9 +450,18 @@ class UserManagementController extends CI_Controller {
         if (!empty($input['password'])) {
             $update['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
         }
+        if (!empty($input['district'])) {
+            $update['dist_code'] = $input['district'];
+        }
+        if (!empty($input['circle'])) {
+            $update['cir_code'] = $input['circle'];
+        }
+        if (!empty($input['subdivision'])) {
+            $update['subdiv_code'] = $input['subdivision'];
+        }
         if (empty($update)) {
             // nothing to update
-            echo json_encode(['status'=>1,'message'=>'No changes','data'=>[]]);
+            echo json_encode(['status' => 1, 'message' => 'No changes', 'data' => []]);
             return;
         }
 
@@ -460,7 +472,7 @@ class UserManagementController extends CI_Controller {
         if ($this->db->trans_status() === FALSE || !$ok) {
             $this->db->trans_rollback();
             http_response_code(500);
-            echo json_encode(['status'=>0,'message'=>'Failed to update user']);
+            echo json_encode(['status' => 0, 'message' => 'Failed to update user']);
             return;
         }
 
@@ -485,7 +497,7 @@ class UserManagementController extends CI_Controller {
             'circle'   => $circleInfo
         ];
 
-        echo json_encode(['status'=>1,'message'=>'User updated','data'=>$respData]);
+        echo json_encode(['status' => 1, 'message' => 'User updated', 'data' => $respData]);
     }
 
 
@@ -508,9 +520,9 @@ class UserManagementController extends CI_Controller {
         $role = (string)(int)$role;
 
         $role_map = [
-            '10' => ['01','02','03','04','05','06','07','08','09'],
+            '10' => ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
             '14' => ['10'],
-            '15' => ['10','11'],
+            '15' => ['10', '11'],
         ];
 
         if (!isset($role_map[$role]) || empty($role_map[$role])) {
@@ -520,10 +532,10 @@ class UserManagementController extends CI_Controller {
 
         $codes = $role_map[$role];
 
-        
+
         $rows = $this->Designation_model->get_by_codes($codes);
 
-        $result = array_map(function($r) {
+        $result = array_map(function ($r) {
             return [
                 'designation_code' => $r['designation_code'],
                 'designation_name' => $r['designation_name']
@@ -532,8 +544,4 @@ class UserManagementController extends CI_Controller {
 
         echo json_encode(['status' => 1, 'data' => $result]);
     }
-
-
-
-        
 }
