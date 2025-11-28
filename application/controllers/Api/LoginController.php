@@ -88,7 +88,9 @@ class LoginController extends CI_Controller
                 'dcode' => $distcode,
                 'subdiv_code' => $subdiv_code,
                 'cir_code' => $cir_code,
-                'is_password_changed' => $is_password_changed ? '1' : false
+                'is_password_changed' => $is_password_changed ? '1' : false,
+                'role_code' => $this->UserModel->getRoleNameFromCode($usertype),
+                'role_name' => $this->UserModel->getRoleFullNameFromCode($usertype),
             ];
 
             // if (ENABLE_MOBILE_VERIFICATION == '1' && $is_set_mobile) {
