@@ -31,7 +31,7 @@ class Dataentryuser_model extends CI_Model {
      */
     public function get_users_paginated($limit, $offset, $filters = [], $sort_by = 'id', $sort_dir = 'asc',$user_type)
     {
-        $this->db->select('serial_no, username, name, email, phone_no, user_role, dist_code, subdiv_code, cir_code,designation');
+        $this->db->select('serial_no, username, name, email, mobile_no, user_role, dist_code, subdiv_code, cir_code,designation');
         $this->db->from($this->table);
 
         // ROLE FILTER
@@ -58,7 +58,6 @@ class Dataentryuser_model extends CI_Model {
                 $this->db->like('LOWER(username)', $w);
                 $this->db->or_like('LOWER(name)', $w);
                 $this->db->or_like('LOWER(email)', $w);
-                $this->db->or_like('LOWER(phone_no)', $w);
                 $this->db->or_like('LOWER(mobile_no)', $w);
                 $this->db->group_end();
                 // Because outer group is AND, each word must match somewhere
@@ -102,7 +101,7 @@ class Dataentryuser_model extends CI_Model {
 
     public function get_user_by_id($id)
     {
-        $this->db->select('serial_no, username, name, email, phone_no, user_role, dist_code, subdiv_code, cir_code','designation');
+        $this->db->select('serial_no, username, name, email, mobile_no, user_role, dist_code, subdiv_code, cir_code','designation');
         $this->db->from($this->table);
         $this->db->where('serial_no', (int)$id);
         $this->db->limit(1);
@@ -145,7 +144,7 @@ class Dataentryuser_model extends CI_Model {
     public function phone_exists_except($phone, $except_id)
     {
         $q = $this->db->from($this->table)
-                    ->where('phone_no', $phone)
+                    ->where('mobile_no', $phone)
                     ->where('serial_no !=', (int)$except_id)
                     ->limit(1)
                     ->get();
