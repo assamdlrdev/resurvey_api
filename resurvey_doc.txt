@@ -424,6 +424,8 @@ INSERT INTO survey_designations (designation_code, designation_name) VALUES
 ALTER TABLE dataentryusers
 ADD COLUMN designation VARCHAR(2) NULL;
 
+ALTER TABLE dataentryusers
+ADD COLUMN email VARCHAR(255) NULL;
 
 //District dbs
 CREATE EXTENSION postgis;
