@@ -109,7 +109,7 @@ class UserManagementController extends CI_Controller {
             'username'    => $input['username'],
             'password'    => sha1($input['password']),
             'name'        => $input['name'],
-            'phone_no'    => $input['phone_no'],
+            // 'phone_no'    => $input['phone_no'],
             'mobile_no'   => $input['phone_no'],
             'email'       => $input['email'],
             'designation' => $input['designation'],
