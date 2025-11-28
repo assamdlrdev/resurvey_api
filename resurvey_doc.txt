@@ -400,6 +400,7 @@ ALTER TABLE IF EXISTS public.supportive_document
     OWNER to postgres;
 
 
+//db-locmaster
 
 CREATE TABLE survey_designations (
     id SERIAL PRIMARY KEY,                -- Auto-increment (MySQL: INT AUTO_INCREMENT)
@@ -424,7 +425,7 @@ ALTER TABLE dataentryusers
 ADD COLUMN designation VARCHAR(2) NULL;
 
 
-
+//District dbs
 CREATE EXTENSION postgis;
 CREATE TABLE geo_data (
     id SERIAL PRIMARY KEY,
