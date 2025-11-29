@@ -427,6 +427,15 @@ ADD COLUMN designation VARCHAR(2) NULL;
 ALTER TABLE dataentryusers
 ADD COLUMN email VARCHAR(255) NULL;
 
+ALTER TABLE dataentryusers
+ADD COLUMN created_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_on timestamp without time zone NULL;
+
 //District dbs
 CREATE EXTENSION postgis;
 CREATE TABLE geo_data (
