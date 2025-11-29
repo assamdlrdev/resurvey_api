@@ -40,6 +40,7 @@ class UserManagementController extends CI_Controller
         // Basic optional API key check (replace/extend with real auth)
         // $api_key = $this->input->get_request_header('X-API-Key', TRUE);
         // if ($api_key !== 'your-api-key-here') { http_response_code(401); echo json_encode(['status'=>0,'message'=>'Unauthorized']); return; }
+        $usercode  =  $this->jwt_data->usercode;
 
         // Read JSON body if present
         $raw = trim(file_get_contents("php://input"));
@@ -73,9 +74,19 @@ class UserManagementController extends CI_Controller
         $this->form_validation->reset_validation();
         $this->form_validation->set_data($input);
 
-        $this->form_validation->set_rules('dist_code', 'District code', 'trim|required|alpha_numeric');
-        // $this->form_validation->set_rules('subdiv_code', 'Subdivision code', 'trim|required|alpha_numeric');
-        $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|required|regex_match[/^[0-9\-]+$/]');
+        // dist_code and cir_code required only when user_role == 15
+        $isCircleRequired = ((string)(int)$input['user_role'] !== '15');
+
+        if ($isCircleRequired) {
+            $this->form_validation->set_rules('dist_code', 'District code', 'trim|required|alpha_numeric');
+            $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|required|regex_match[/^[0-9\-]+$/]');
+            $parts = explode("-", $input['cir_code']);
+            $subdiv  = $parts[1];   // 01
+            $cir     = $parts[2];   // 01
+        } else {
+            $this->form_validation->set_rules('dist_code', 'District code', 'trim|alpha_numeric');
+            $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|regex_match[/^[0-9\-]+$/]');
+        }
         $this->form_validation->set_rules('user_role', 'User role', 'trim|required|alpha_numeric');
         $this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[3]|max_length[50]|alpha_numeric|callback__username_unique_api');
         $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[6]');
@@ -84,12 +95,7 @@ class UserManagementController extends CI_Controller
         $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
         $this->form_validation->set_rules('designation', 'Designation Code', 'trim|regex_match[/^[0-9]{2}$/]');
 
-        $parts = explode("-", $input['cir_code']);
 
-        // Result:
-        // $dist = $parts[0];   // 17
-        $subdiv  = $parts[1];   // 01
-        $cir     = $parts[2];   // 01
 
         if ($this->form_validation->run() === FALSE) {
             http_response_code(422);
@@ -103,9 +109,6 @@ class UserManagementController extends CI_Controller
 
         // Prepare insert data (hash password)
         $insert = [
-            'dist_code'   => $input['dist_code'],
-            'subdiv_code' => $subdiv,
-            'cir_code'    => $cir,
             'user_role'   => $input['user_role'],
             'username'    => $input['username'],
             'password'    => sha1($input['password']),
@@ -116,7 +119,17 @@ class UserManagementController extends CI_Controller
             'designation' => $input['designation'],
             'user_status' => 'E',
             'date_of_creation'  => date('Y-m-d H:i:s'),
+            'created_by' => $usercode
         ];
+        if ($isCircleRequired) {
+            $insert['dist_code'] = $input['dist_code'];
+            $insert['subdiv_code'] = $subdiv;
+            $insert['cir_code'] = $cir;
+        }else{
+            $insert['dist_code'] = '00';
+            $insert['subdiv_code'] = '00';
+            $insert['cir_code'] = '00';
+        }
 
         // transaction
         $this->db->trans_begin();
@@ -302,7 +315,7 @@ class UserManagementController extends CI_Controller
             }
 
             // role name
-            $roleName = $this->UserModel->getRoleNameFromCode($user->user_role);
+            $roleName = $this->UserModel->getRoleFullNameFromCode($user->user_role);
 
             // district object
             $districtInfo = $this->LocationModel->getDistrict(
@@ -323,7 +336,8 @@ class UserManagementController extends CI_Controller
                 'name'      => $user->name,
                 'email'     => $user->email ?? null,
                 'mobile_no'  => $user->mobile_no,
-                'role'      => $roleName,
+                'role_name'      => $roleName,
+                'role'      => $user->user_role,
 
                 // object, not string
                 'district' => $districtInfo,
@@ -352,6 +366,7 @@ class UserManagementController extends CI_Controller
     public function update($id = null)
     {
         header('Content-Type: application/json; charset=utf-8');
+        $usercode  =  $this->jwt_data->usercode;
 
         // basic id check
         if ($id === null || !ctype_digit((string)$id)) {
@@ -464,6 +479,8 @@ class UserManagementController extends CI_Controller
             echo json_encode(['status' => 1, 'message' => 'No changes', 'data' => []]);
             return;
         }
+        $update['updated_by'] = $usercode;
+        $update['updated_on'] = date('Y-m-d H:i:s');
 
         // perform update inside transaction
         $this->db->trans_begin();
