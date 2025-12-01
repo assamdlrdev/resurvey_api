@@ -167,6 +167,7 @@ class LoginController extends CI_Controller
         parse_str($queryString, $output);
         $resurvey_data = $output;
 
+
         $district = $this->input->post('district', true);
         $id = $this->input->post('id', true);
         $is_lm = $resurvey_data['is_lm'];
@@ -194,6 +195,10 @@ class LoginController extends CI_Controller
         ]);
         $db->where('id', $rnd_id);
         $db->update('login_log');
+
+
+        // test('test', 1);
+
 
         $logindetails = false;
 
@@ -277,6 +282,8 @@ class LoginController extends CI_Controller
         } else {
             $user_desig_code = $user_desig_code;
         }
+
+        // test($user_desig_code, 1);
         // $this->session->set_userdata('fromSingleSign', true);
         $usertype = $this->UserModel->getRoleCodeFromDharCode($user_desig_code);
         if (!$usertype) {

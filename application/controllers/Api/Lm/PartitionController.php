@@ -30,7 +30,7 @@ class PartitionController extends CI_Controller
         // switch another DB
         $this->dbswitch($this->tokenData->dcode);
 
-        $this->load->model('Api/PartitionModel', 'pm');
+        $this->load->model('Api/Lm/PartitionModel', 'pm');
 
         $this->CURR_DATE = date('Y-m-d');
         $this->CURR_YEAR = date('Y');

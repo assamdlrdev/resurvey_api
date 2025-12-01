@@ -255,7 +255,7 @@ if (!function_exists('getAllJDS')) {
         return [];
     }
 
-    function test($data, $exit=false)
+    function test($data, $exit = true)
     {
         echo "<pre>";
         var_dump($data);
@@ -268,5 +268,21 @@ if (!function_exists('getAllJDS')) {
     {
         return $_SERVER['REMOTE_ADDR'];
     }
+
+    function currentDate()
+    {
+        return date('Y-m-d');
+    }
+
+    function currentYear()
+    {
+        return date('Y');
+    }
+
+    function currentDateTime()
+    {
+        return date('Y-m-d H:i:s');
+    }
+
 
 }

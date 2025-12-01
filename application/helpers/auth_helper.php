@@ -1,4 +1,6 @@
 <?php
+
+use phpDocumentor\Reflection\Types\Boolean;
 defined('BASEPATH') or exit('No direct script access allowed');
 
 use Firebase\JWT\JWT;
@@ -69,3 +71,43 @@ if (!function_exists('validate_jwt')) {
         }
     }
 }
+
+
+// Function to check if authentication is successful
+function isAuthSuccess(): bool
+{
+    // Directly return the status of validate_jwt() instead of using an if-else statement
+    return (bool) $auth = validate_jwt()['status'];
+}
+
+// Function to retrieve authentication data
+function authData()
+{
+    // Use null coalescing operator to simplify the code
+    return validate_jwt()['data'] ?? null;
+}
+
+// Function to retrieve authentication data
+function authMessage()
+{
+    // Use null coalescing operator to simplify the code
+    return validate_jwt()['message'] ?? null;
+}
+
+// Function to check if authentication failed, return output directly
+function authCheck()
+{
+    $CI =& get_instance(); // Get the CI instance
+
+    if (!validate_jwt()['status']) {
+        // Directly send the 401 response with the error message using the CI instance
+        $CI->output
+            ->set_status_header(401)
+            ->set_content_type('application/json')
+            ->set_output(json_encode(['error' => authMessage(), 'message' => 'Authentication Failed!']))
+            ->_display();
+        exit; // End the script execution after sending the response
+    }
+}
+
+

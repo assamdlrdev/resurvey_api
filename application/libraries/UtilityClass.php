@@ -97,7 +97,8 @@ class UtilityClass
         $district = $CI->db->query("select loc_name AS district from location where dist_code ='$dist_code'  and "
             . " subdiv_code='00' and cir_code='00' and mouza_pargona_code='00' and "
             . " vill_townprt_code='00000' and lot_no='00'");
-        return $district->row()->district;
+
+        return $district->row()->district ?? null;
     }
 
     public function getDistrictNamebydbload($dist_code)

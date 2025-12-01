@@ -349,7 +349,6 @@ class PartitionModel extends CI_Model
 
     public function insertFieldMutBasicData($data, $caseNo, $petitionNo)
     {
-
         $field_mut_basic_data = array(
             'dist_code' => $data['dist_code'],
             'subdiv_code' => $data['subdiv_code'],

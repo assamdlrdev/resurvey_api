@@ -131,13 +131,21 @@ $route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map
 
 
 #Partition: Lot Mondal Routes
-$route['get_lm_villages'] = 'Api/PartitionController/getLmVillages';
-$route['get_patta_types'] = 'Api/PartitionController/getPattaTypes';
-$route['get_patta_numbers'] = 'Api/PartitionController/getPattaNumbers';
-$route['get_dag_numbers'] = 'Api/PartitionController/getDagNumbers';
-$route['get_dag_pattadar_info'] = 'Api/PartitionController/getDagPattadarInfo';
-$route['get_land_area_info'] = 'Api/PartitionController/getLandAreaInfo';
-$route['partition_lra'] = 'Api/PartitionController/LmForwardPartitionAplcnToCO';
+$route['get_lm_villages'] = 'Api/Lm/PartitionController/getLmVillages';
+$route['get_patta_types'] = 'Api/Lm/PartitionController/getPattaTypes';
+$route['get_patta_numbers'] = 'Api/Lm/PartitionController/getPattaNumbers';
+$route['get_dag_numbers'] = 'Api/Lm/PartitionController/getDagNumbers';
+$route['get_dag_pattadar_info'] = 'Api/Lm/PartitionController/getDagPattadarInfo';
+$route['get_land_area_info'] = 'Api/Lm/PartitionController/getLandAreaInfo';
+$route['partition_lra'] = 'Api/Lm/PartitionController/LmForwardPartitionAplcnToCO';
+
+#Partition: CO Routes
+$route['get_co_partition_list'] = 'Api/Co/PartitionController/getPartitionList';
+$route['get_co_case_details'] = 'Api/Co/PartitionController/getCaseDetails';
+$route['save_co_partition_form'] = 'Api/Co/PartitionController/savePartitionForm';
+
+$route['api-login'] = 'Api/CoPartitionController/test';
+
 
 
 
