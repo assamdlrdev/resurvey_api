@@ -3,11 +3,11 @@
 class UserModel extends CI_Model
 {
     public static $DEO_CODE = '00';
-    public static $ADMIN_CODE = '1';
+    public static $ADMIN_CODE = '1'; //district admin
     public static $SUPERADMIN_CODE = '2';
-    public static $LM_CODE = '3';
+    public static $LM_CODE = '3'; //LRA
     public static $CO_CODE = '4';
-    public static $SK_CODE = '5';
+    public static $SK_CODE = '5'; //Lrs
     public static $ADC_CODE = '6';
     public static $DC_CODE = '7';
     public static $SDO_CODE = '8';
@@ -16,8 +16,8 @@ class UserModel extends CI_Model
     public static $SURVEYOR_CODE = '11';
     public static $SPMU_CODE = '12';
     public static $SURVEY_SUPER_ADMIN_CODE = '13';
-    public static $SURVEY_GIS_ASSISTANT_CODE = '14';
-
+    public static $SURVEY_GIS_ASSISTANT_CODE = '14'; //circle
+    public static $STATE_GIS_CODE = '15'; // state
 
     public static $USER_ACTIVITY_LOGIN = 'LOGIN';
     public static $USER_ACTIVITY_PW_CHANGED = 'PASSWORD_UPDATED';
@@ -69,10 +69,12 @@ class UserModel extends CI_Model
             case 'SSADM':
                 $code = self::$SURVEY_SUPER_ADMIN_CODE;
                 break;
-            case 'GISA':
+            case 'CGISA':
                 $code = self::$SURVEY_GIS_ASSISTANT_CODE;
                 break;
-
+            case 'SGISA':
+                $code = self::$STATE_GIS_CODE;
+                break;
             default:
                 $code = '';
                 break;
@@ -88,6 +90,9 @@ class UserModel extends CI_Model
                 break;
             case 1:
                 $name = 'ADM';
+                break;
+            case 2:
+                $name = 'SADM';
                 break;
             case 3:
                 $name = 'LM';
@@ -107,6 +112,9 @@ class UserModel extends CI_Model
             case 8:
                 $name = 'SDO';
                 break;
+            case 9:
+                $name = 'GUEST';
+                break;
             case 10:
                 $name = 'SPVR';
                 break;
@@ -120,13 +128,68 @@ class UserModel extends CI_Model
                 $name = 'SSADM';
                 break;
             case 14:
-                $name = 'GISA';
+                $name = 'CGISA';
+                break;
+            case 15:
+                $name = 'SGISA';
+                break;
+            default:
+                $name = '';
+                break;
+        }
+        return $name;
+    }
+    public function getRoleFullNameFromCode($code)
+    {
+        $name = '';
+        switch ($code) {
+            case 0:
+                $name = 'Data Entry Operator';
+                break;
+            case 1:
+                $name = 'Admin';
                 break;
             case 2:
-                $name = 'SADM';
+                $name = 'Super Admin';
+                break;
+            case 3:
+                $name = 'Land Record Assistant';
+                break;
+            case 4:
+                $name = 'Circle Officer';
+                break;
+            case 5:
+                $name = 'Land Record Supervisor';
+                break;
+            case 6:
+                $name = 'Additional District Commissioner';
+                break;
+            case 7:
+                $name = 'District Commissioner';
+                break;
+            case 8:
+                $name = 'SDO';
                 break;
             case 9:
                 $name = 'GUEST';
+                break;
+            case 10:
+                $name = 'Survey Supervisor';
+                break;
+            case 11:
+                $name = 'Surveyor';
+                break;
+            case 12:
+                $name = 'SPMU';
+                break;
+            case 13:
+                $name = 'Survey Superadmin';
+                break;
+            case 14:
+                $name = 'Circle GIS Assistant';
+                break;
+            case 15:
+                $name = 'State GIS Assistant';
                 break;
             default:
                 $name = '';

@@ -166,7 +166,7 @@ ADD COLUMN updated_by VARCHAR(10);
 ALTER TABLE chitha_basic_splitted_dags
 ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
 
-<<<<<<< HEAD
+
 
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN email VARCHAR(255),
@@ -621,3 +621,54 @@ ADD COLUMN id_ref_no character varying (50),
 ADD COLUMN photo character varying (200),
 ADD COLUMN pdar_name_eng character varying (150),
 ADD COLUMN pdar_guard_eng character varying (150)
+//db-locmaster
+
+CREATE TABLE survey_designations (
+    id SERIAL PRIMARY KEY,                -- Auto-increment (MySQL: INT AUTO_INCREMENT)
+    designation_code VARCHAR(5) NOT NULL, -- e.g., 01, 02, 03
+    designation_name VARCHAR(100) NOT NULL
+);
+
+INSERT INTO survey_designations (designation_code, designation_name) VALUES
+('01', 'Supervisor'),
+('02', 'Traverse GI'),
+('03', 'Traverse GII'),
+('04', 'Traverse GIII'),
+('05', 'Head Computor'),
+('06', 'Computor GI'),
+('07', 'Computor GII'),
+('08', 'Senior PTS'),
+('09', 'PTS'),
+('10', 'GIS Assistant'),
+('11', 'GIS Analyst');
+
+ALTER TABLE dataentryusers
+ADD COLUMN designation VARCHAR(2) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN email VARCHAR(255) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN created_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_on timestamp without time zone NULL;
+
+//District dbs
+CREATE EXTENSION postgis;
+CREATE TABLE geo_data (
+    id SERIAL PRIMARY KEY,
+    geojson JSONB,  -- Store the raw GeoJSON data
+    geom GEOMETRY(MultiPolygon, 4326),  -- Store the geometry in PostGIS format
+    dist_code VARCHAR(2),  -- Reference ID: District code
+    subdiv_code VARCHAR(2),  -- Reference ID: Subdivision code
+    cir_code VARCHAR(2),  -- Reference ID: Circle code
+    mouza_pargona_code VARCHAR(2),  -- Reference ID: Mouza/Pargona code
+    lot_no VARCHAR(2),  -- Reference ID: Lot number
+    vill_townprt_code VARCHAR(5),  -- Reference ID: Village/Town part code
+    dag_no VARCHAR(10),  -- Reference ID: Dag number
+    status VARCHAR(1)  -- 0,1
+);
