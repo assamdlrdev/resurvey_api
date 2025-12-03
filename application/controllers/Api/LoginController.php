@@ -91,6 +91,9 @@ class LoginController extends CI_Controller
                 'is_password_changed' => $is_password_changed ? '1' : false,
                 'role_code' => $this->UserModel->getRoleNameFromCode($usertype),
                 'role_name' => $this->UserModel->getRoleFullNameFromCode($usertype),
+                'email' => $validateuserdetails['email'],
+                'mobile_no' => $validateuserdetails['mobile_no'],
+                'serial_no' => $validateuserdetails['serial_no'],
             ];
 
             // if (ENABLE_MOBILE_VERIFICATION == '1' && $is_set_mobile) {
