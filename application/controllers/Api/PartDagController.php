@@ -198,7 +198,7 @@ class PartDagController extends CI_Controller
         //     return;
         // }
 
-        $checkNewDag = $this->PartDagModel->checkExistingDag($dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $part_dag, $bhunaksha_survey_no, $original_dag_no);
+        $checkNewDag = $this->PartDagModel->checkExistingDag($dist_code, $subdiv_code, $cir_code, $mouza_pargona_code, $lot_no, $vill_townprt_code, $part_dag, $bhunaksha_survey_no);
         if ($checkNewDag['status'] == 'n') {
             log_message('error', $checkNewDag['msg']);
             $this->output->set_status_header(500);  // Change to 400, 401, 500, etc. as needed
