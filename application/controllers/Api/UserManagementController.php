@@ -533,6 +533,148 @@ class UserManagementController extends CI_Controller {
         echo json_encode(['status' => 1, 'data' => $result]);
     }
 
+    
+    public function change_password()
+    {
+        // Force JSON
+        header('Content-Type: application/json; charset=utf-8');
+
+        // Only allow POST (you can relax this if you want)
+        if (strtoupper($this->input->method()) !== 'POST') {
+            http_response_code(405);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Method Not Allowed'
+            ]);
+            return;
+        }
+
+        // Read JSON body if present
+        $raw = trim(file_get_contents("php://input"));
+        $data = [];
+        if (!empty($raw)) {
+            $decoded = json_decode($raw, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $data = $decoded;
+            }
+        }
+        // Fallback to $_POST
+        if (empty($data)) {
+            $data = $this->input->post();
+        }
+
+        // Map inputs (do NOT xss_clean passwords)
+        $input = [
+            'current_password' => isset($data['current_password']) ? $data['current_password'] : null,
+            'new_password'     => isset($data['new_password'])     ? $data['new_password']     : null,
+            'confirm_password' => isset($data['confirm_password']) ? $data['confirm_password'] : null,
+        ];
+
+        // Validation
+        $this->form_validation->reset_validation();
+        $this->form_validation->set_data($input);
+
+        $this->form_validation->set_rules('current_password', 'Current Password', 'trim|required');
+        $this->form_validation->set_rules('new_password', 'New Password', 'trim|required|min_length[6]');
+        $this->form_validation->set_rules('confirm_password', 'Confirm Password', 'trim|required|matches[new_password]');
+
+        if ($this->form_validation->run() === FALSE) {
+            http_response_code(422);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Validation failed',
+                'errors'  => $this->form_validation->error_array()
+            ]);
+            return;
+        }
+
+        // Get current user identity from JWT (set in __construct)
+        $jwt = $this->jwt_data;
+
+        $userId   = null;
+        $username = null;
+
+        if (!empty($jwt['user_id']))       $userId   = (int)$jwt['user_id'];
+        elseif (!empty($jwt['id']))        $userId   = (int)$jwt['id'];
+        elseif (!empty($jwt['serial_no'])) $userId   = (int)$jwt['serial_no'];
+        elseif (!empty($jwt['uid']))       $userId   = (int)$jwt['uid'];
+
+        if (!empty($jwt['username']))      $username = $jwt['username'];
+
+        // Load user from DB
+        $user = null;
+        if ($userId) {
+            $user = $this->Dataentryuser_model->get_user_by_id($userId);
+        } elseif ($username) {
+            if (method_exists($this->Dataentryuser_model, 'get_user_by_username')) {
+                $user = $this->Dataentryuser_model->get_user_by_username($username);
+            }
+        }
+
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'User not found'
+            ]);
+            return;
+        }
+
+        // Check current password (stored as sha1)
+        $currentHash = sha1($input['current_password']);
+        if ($currentHash !== $user->password) {
+            http_response_code(422);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Validation failed',
+                'errors'  => [
+                    'current_password' => 'Current password is incorrect.'
+                ]
+            ]);
+            return;
+        }
+
+        // Prevent reusing same password (optional but recommended)
+        $newHash = sha1($input['new_password']);
+        if ($newHash === $user->password) {
+            http_response_code(422);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Validation failed',
+                'errors'  => [
+                    'new_password' => 'New password must be different from current password.'
+                ]
+            ]);
+            return;
+        }
+
+        // Update password
+        $update = [
+            'password' => $newHash,
+            // 'date_of_modification' => date('Y-m-d H:i:s'), // if you have this column
+        ];
+
+        $this->db->trans_begin();
+        $ok = $this->Dataentryuser_model->update_user($user->serial_no, $update);
+
+        if ($this->db->trans_status() === FALSE || !$ok) {
+            $this->db->trans_rollback();
+            http_response_code(500);
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Failed to change password'
+            ]);
+            return;
+        }
+
+        $this->db->trans_commit();
+
+        http_response_code(200);
+        echo json_encode([
+            'status'  => 1,
+            'message' => 'Password changed successfully'
+        ]);
+    }
 
 
         

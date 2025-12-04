@@ -134,6 +134,8 @@ $route['api/users/list']   = 'Api/UserManagementController/list';
 $route['api/users/(:num)'] = 'Api/UserManagementController/show/$1';
 $route['api/users/(:num)/update']['post']  = 'Api/UserManagementController/update/$1';
 $route['api/designations']['get'] = 'Api/UserManagementController/designations_by_role';
+$route['api/users/change-password']['post'] = 'Api/UserManagementController/change_password';
+
 
 
 
