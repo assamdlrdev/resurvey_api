@@ -653,7 +653,8 @@ class UserManagementController extends CI_Controller {
         // Update password
         $update = [
             'password' => $newHash,
-            // 'date_of_modification' => date('Y-m-d H:i:s'), // if you have this column
+            'is_password_changed'=> 1,
+            'password_updated_at' => date('Y-m-d H:i:s'),
         ];
 
         $this->db->trans_begin();
