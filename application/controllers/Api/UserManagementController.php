@@ -575,8 +575,9 @@ class UserManagementController extends CI_Controller {
         $this->form_validation->set_data($input);
 
         $this->form_validation->set_rules('current_password', 'Current Password', 'trim|required');
-        $this->form_validation->set_rules('new_password', 'New Password', 'trim|required|min_length[6]');
+        $this->form_validation->set_rules('new_password', 'New Password', 'trim|required|min_length[8]|regex_match[/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/]');
         $this->form_validation->set_rules('confirm_password', 'Confirm Password', 'trim|required|matches[new_password]');
+
 
         if ($this->form_validation->run() === FALSE) {
             http_response_code(422);
@@ -590,16 +591,17 @@ class UserManagementController extends CI_Controller {
 
         // Get current user identity from JWT (set in __construct)
         $jwt = $this->jwt_data;
+        // print_r($jwt);
 
         $userId   = null;
         $username = null;
 
-        if (!empty($jwt['user_id']))       $userId   = (int)$jwt['user_id'];
-        elseif (!empty($jwt['id']))        $userId   = (int)$jwt['id'];
-        elseif (!empty($jwt['serial_no'])) $userId   = (int)$jwt['serial_no'];
-        elseif (!empty($jwt['uid']))       $userId   = (int)$jwt['uid'];
+        // if (!empty($jwt['user_id']))       $userId   = (int)$jwt['user_id'];
+        // elseif (!empty($jwt['id']))        $userId   = (int)$jwt['id'];
+        // elseif (!empty($jwt['serial_no'])) $userId   = (int)$jwt['serial_no'];
+        // elseif (!empty($jwt['uid']))       $userId   = (int)$jwt['uid'];
 
-        if (!empty($jwt['username']))      $username = $jwt['username'];
+        if (!empty($jwt->usercode))      $username = $jwt->usercode;
 
         // Load user from DB
         $user = null;
