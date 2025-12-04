@@ -612,4 +612,49 @@ class PartitionModel extends CI_Model
     }
 
 
+    function getCaseSupportiveDocs($data)
+    {
+        $this->db->select('*');
+        $this->db->from('supportive_document');
+
+        // WHERE conditions
+        $this->db->where('case_no', $data['case_no']);
+        $this->db->where('mut_type', 'FP');
+
+        // Execute the query
+        $query = $this->db->get();
+
+        return $query->result();
+    }
+
+    function getParticularCaseSupportiveDocs($data)
+    {
+        $this->db->select('*');
+        $this->db->from('supportive_document');
+
+        // WHERE conditions
+        $this->db->where('case_no', $data['case_no']);
+        $this->db->where('doc_flag', $data['doc_flag']);
+        $this->db->where('mut_type', 'FP');
+
+        // Execute the query
+        $query = $this->db->get();
+
+        return $query->row();
+    }
+
+
+function deleteParticularCaseSupportiveDoc($data)
+{
+    $this->db->where('case_no', $data['case_no']);
+    $this->db->where('doc_flag', $data['doc_flag']);
+    $this->db->where('mut_type', 'FP');
+
+    $this->db->delete('supportive_document');
+
+    return $this->db->affected_rows(); // returns 0 or >0 [web:57]
+}
+
+
+
 }

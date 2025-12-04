@@ -143,6 +143,11 @@ $route['partition_lra'] = 'Api/Lm/PartitionController/LmForwardPartitionAplcnToC
 $route['get_co_partition_list'] = 'Api/Co/PartitionController/getPartitionList';
 $route['get_co_case_details'] = 'Api/Co/PartitionController/getCaseDetails';
 $route['save_co_partition_form'] = 'Api/Co/PartitionController/savePartitionForm';
+$route['submit_co_partition_supportive_docs'] = 'Api/Co/PartitionController/saveCoPartitionSupportiveDocs';
+$route['remove_co_partition_supportive_docs'] = 'Api/Co/PartitionController/removeCoPartitionSupportiveDocs';
+
+
+
 
 $route['api-login'] = 'Api/CoPartitionController/test';
 

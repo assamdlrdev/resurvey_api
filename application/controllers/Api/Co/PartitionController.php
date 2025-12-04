@@ -142,15 +142,12 @@ class PartitionController extends CI_Controller
             $fieldPartPetitionerDetails = $this->pm->fieldPartPetitionerDetails($data);
             $chithaBasicDetails = $this->pm->getChithaBasicDetails($data);
 
-            // test($fieldPartPetitionerDetails, true);
-
-
             $data['existing_dag_list'] = $this->pm->getDagNumbersOfParticularPatta($data);
             $data['existing_patta_no_list'] = $this->pm->getSuggestedPattaNumbers($data);
 
-            $data['dag_revenue'] = $chithaBasicDetails->dag_revenue;
+            $data['dag_revenue'] = $resultFmbDetails->min_revenue ?? 0;
 
-            $dagLocalTax = $chithaBasicDetails->dag_local_tax;
+            $dagLocalTax = $resultFmbDetails->min_revenue / 4;
             $dagLocalTax = ($dagLocalTax == null) ? "3.5" : (($dagLocalTax <= 3.5) ? "15" : $dagLocalTax);
             $data['dag_local_tax'] = $dagLocalTax;
 
@@ -176,6 +173,7 @@ class PartitionController extends CI_Controller
             $data['applicant_list'] = $fieldPartPetitionerArray;
 
             $data['checkPattaApplicant'] = $this->pm->checkPattaApplicant($data);
+            $data['supportive_docs'] = $this->pm->getCaseSupportiveDocs(['case_no' => $data['case_no']]);
 
             return $this->generateResponse($data);
         }
@@ -183,7 +181,9 @@ class PartitionController extends CI_Controller
         return $this->generateResponse(null);
     }
 
-
+    /**
+     * Final Procee of CO submitting Partition Form.
+     */
     function savePartitionForm()
     {
         $input = json_decode(file_get_contents('php://input')); // get raw JSON input
@@ -237,12 +237,9 @@ class PartitionController extends CI_Controller
         $dagLocalTax = ($dagLocalTax == null) ? "3.5" : (($dagLocalTax <= 3.5) ? "15" : $dagLocalTax);
         $data['dag_local_tax'] = $dagLocalTax;
 
-        //todo -> need to check if correct or not ??
         $data['land_area_left_b'] = $resultFieldMutDagDetails->dag_area_b;
         $data['land_area_left_k'] = $resultFieldMutDagDetails->dag_area_k;
         $data['land_area_left_lc'] = $resultFieldMutDagDetails->dag_area_lc;
-
-        //  test($data, true);
 
         $this->db->trans_begin();
 
@@ -325,8 +322,8 @@ class PartitionController extends CI_Controller
                 ->where('dist_code', $data['dist_code'])
                 ->where('subdiv_code', $data['subdiv_code'])
                 ->where('cir_code', $data['cir_code'])
-                ->where('dag_no !=',$old)
-                ->where('dag_no','=',$data['sugg_dag_no'])
+                ->where('dag_no !=', $old)
+                ->where('dag_no', '=', $data['sugg_dag_no'])
                 ->get()
                 ->row()->d;
 
@@ -704,7 +701,6 @@ class PartitionController extends CI_Controller
             unset($data['not_consistent']);
             $corrected = date('Y-m-d G:i:s');
             $dataNew = $data;
-            //   test($data, 1);
             $tstatus1 = $this->db->insert("chitha_col8_order", $data); //************************************************************************************************ 
             // insert query
             if ($tstatus1 != 1) {
@@ -1340,7 +1336,6 @@ class PartitionController extends CI_Controller
         return true;
     }
 
-    //TODO need to test
     public function autoUpdate_fulldag_field(
         $dist_code,
         $subdiv_code,
@@ -1910,6 +1905,251 @@ class PartitionController extends CI_Controller
     }
 
 
+    // Validation callback for file input
+    public function file_check($str)
+    {
+        $allowed_mime_types = array(
+            'application/pdf',
+            'image/gif',
+            'image/jpeg',
+            'image/pjpeg',
+            'image/png',
+            'image/x-png',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+
+        if (isset($_FILES['file']['name']) && $_FILES['file']['name'] != "") {
+            $mime = get_mime_by_extension($_FILES['file']['name']);
+
+            if (in_array($mime, $allowed_mime_types)) {
+                return TRUE;
+            } else {
+                $this->form_validation->set_message('file_check', 'Please select only PDF, Image, or Document files.');
+                return FALSE;
+            }
+        } else {
+            $this->form_validation->set_message('file_check', 'Please choose a file to upload.');
+            return FALSE;
+        }
+    }
+
+    function saveCoPartitionSupportiveDocs()
+    {
+        // Get user data
+        $data['user_code'] = $this->tokenData->usercode;
+        $data['dist_code'] = $this->tokenData->dcode;
+        $data['subdiv_code'] = $this->tokenData->subdiv_code;
+        $data['cir_code'] = $this->tokenData->cir_code;
+        $data['user_desig_code'] = $this->tokenData->user_desig_code;
+
+        // Check authorization
+        if ($this->tokenData->user_desig_code !== 'CO') {
+            return $this->generateResponse(false, "Unauthorized!");
+        }
+
+        // Get input data
+        $caseNo = $this->input->post('case_no', true);
+        $id = $this->input->post('id', true);           // file sl number
+        $id += 1;
+
+        $fileName = $this->input->post('name', true);   // user define file name
+
+        // Validate inputs
+        if (empty($_FILES) || empty($id) || empty($fileName) || empty($caseNo)) {
+            return $this->generateResponse(false, "Please provide all required fields!");
+        }
+
+        // Get case details
+        $caseData = [
+            'case_num' => $caseNo,
+            'user_code' => $data['user_code'],
+            'dist_code' => $data['dist_code'],
+            'subdiv_code' => $data['subdiv_code'],
+            'cir_code' => $data['cir_code'],
+            'user_desig_code' => $data['user_desig_code']
+        ];
+
+        $resultFmbDetails = $this->pm->getFieldMutBasicDetails($caseData);
+
+        if (!$resultFmbDetails) {
+            return $this->generateResponse(false, "Case details not found!");
+        }
+
+        // Validate petition number
+        if (empty($resultFmbDetails->petition_no)) {
+            return $this->generateResponse(false, "Petition number is required!");
+        }
+
+        // Load libraries
+        $this->load->library('form_validation');
+        $this->load->library('upload');
+        $this->load->helper('file');
+
+        // Setup upload validation
+        $this->form_validation->set_rules('file', 'File', 'callback_file_check');
+
+        if ($this->form_validation->run() !== TRUE) {
+            return $this->generateResponse(false, $this->form_validation->error_string());
+        }
+
+        // Create upload folder if not exists
+        $folder = UPLOAD_PARTITION_DIR . $data['dist_code'] . UPLOAD_SEPARATOR . 'PART/';
+
+        if (!file_exists($folder)) {
+            if (!mkdir($folder, 0777, true)) {
+                return $this->generateResponse(false, "Failed to create upload directory!");
+            }
+        }
+
+        // Configure upload
+        $ext = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $fileName_generated = $resultFmbDetails->petition_no . '_' . $id . '.' . $ext;
+
+        $config = [
+            'upload_path' => './' . $folder,
+            'allowed_types' => FILE_TYPE,
+            'max_size' => MAX_SIZE * 1024,
+            'file_name' => $fileName_generated,
+            'overwrite' => false
+        ];
+
+        $this->upload->initialize($config);
+
+        // Check if file already exists
+        $existingFile = $this->db
+            ->where([
+                'case_no' => $caseNo,
+                'user_code' => $data['user_code'],
+                'doc_flag' => $id
+            ])
+            ->get('supportive_document')
+            ->row();
+
+
+        if ($existingFile) {
+            //unlink existing file
+            unlink($existingFile->file_path);
+        }
+
+        // Upload file
+        if (!$this->upload->do_upload('file')) {
+            return $this->generateResponse(false, $this->upload->display_errors());
+        }
+
+        $uploadData = $this->upload->data();
+        $filePath = $folder . $fileName_generated;
+
+        // Prepare file data
+        $fileData = [
+            'case_no' => $caseNo,
+            'file_name' => $fileName,
+            'user_code' => $data['user_code'],
+            'fetch_file_name' => $fileName_generated,
+            'file_type' => $uploadData['file_type'],
+            'file_path' => $filePath,
+            'date_entry' => date('Y-m-d H:i:s'),
+            'mut_type' => 'FP',
+            'doc_flag' => $id
+        ];
+
+        try {
+            if ($existingFile) {
+
+                // Update existing file
+                $this->db->where([
+                    'case_no' => $caseNo,
+                    'doc_flag' => $id,
+                    'user_code' => $data['user_code']
+                ]);
+                $this->db->update('supportive_document', $fileData);
+
+                if ($this->db->affected_rows() === 0) {
+                    return $this->generateResponse(false, "Failed to update file record!");
+                }
+
+                $response = [
+                    'img_upload' => true,
+                    'flag_set' => $existingFile->id,
+                    'doc_id' => $existingFile->id,
+                    'filename' => $fileName
+                ];
+
+            } else {
+                // Insert new file record
+                $this->db->insert('supportive_document', $fileData);
+
+                if ($this->db->affected_rows() === 0) {
+                    return $this->generateResponse(false, "Failed to save file record!");
+                }
+
+                $insertedId = $this->db->insert_id();
+
+                $response = [
+                    'img_upload' => true,
+                    'doc_id' => $insertedId,
+                    'filename' => $fileName
+                ];
+            }
+
+            return $this->generateResponse($response, "File uploaded successfully!");
+
+        } catch (Exception $e) {
+            return $this->generateResponse(false, "Error: " . $e->getMessage());
+        }
+    }
+
+
+    function removeCoPartitionSupportiveDocs()
+    {
+        $data['user_desig_code'] = $this->tokenData->user_desig_code;
+
+        // Check authorization
+        if ($this->tokenData->user_desig_code !== 'CO') {
+            return $this->generateResponse(false, "Unauthorized!");
+        }
+
+        // Get input data
+        $caseNo = $this->input->post('case_no', true);
+        $id = $this->input->post('id', true);           // file sl number
+        $id += 1;
+
+        $fileName = $this->input->post('name', true);   // user define file name
+
+        // Validate inputs
+        if (empty($id) || empty($fileName) || empty($caseNo)) {
+            return $this->generateResponse(false, "Please provide all required fields!");
+        }
+
+        // Get case details
+        $caseData = [
+            'case_no' => $caseNo,
+            'doc_flag' => $id,
+        ];
+
+        $getFile = $this->pm->getParticularCaseSupportiveDocs($caseData);
+
+        if (!$getFile) {
+            return $this->generateResponse(false, "File not found!");
+        }
+
+        $isDeleted = $this->pm->deleteParticularCaseSupportiveDoc($caseData);
+
+        if ($isDeleted) {
+            //unlink existing file
+            unlink($getFile->file_path);
+
+            return $this->generateResponse($getFile, "File deleted successfully!");
+        }
+
+
+        return $this->generateResponse(false, "Error: File could not be deletd !");
+    }
+
+
+    /**
+     * OLD Method For Reference.
+     */
     public function finalOrderFieldPartitionCOSave()
     {
         //xss & security validation starts
@@ -2817,5 +3057,7 @@ class PartitionController extends CI_Controller
             redirect(base_url() . "index.php/home");
         }
     }
+
+
 
 }
