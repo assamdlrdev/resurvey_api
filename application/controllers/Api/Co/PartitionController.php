@@ -627,7 +627,7 @@ class PartitionController extends CI_Controller
             return $this->generateResponse(null, "Order Cannot be passed. Error Code [T-TABLE_HAS_DATA] . Contact help desk with case no. " . $data['case_no']);
 
         } else {
-            // $this->db->trans_commit(); 
+            $this->db->trans_commit(); 
 
             return $this->generateResponse(true, "Order passed. Case Pending with mandal for parition Map Correction." . $data['case_no']);
         }
