@@ -100,7 +100,16 @@ class PartDagModel extends CI_Model
         return $totalDagArea;
     }
 
-    public function checkExistingDag($dist, $subdiv, $cir, $mouza, $lot, $vill, $split_dag) {
+    public function checkExistingDag($dist, $subdiv, $cir, $mouza, $lot, $vill, $split_dag, $bhunaksha_survey_no = null) {
+
+        //check if bhunaksha_survey_no already used in that village
+        $checkSplitted = $this->db->query("SELECT survey_no,dag_no FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND bhunaksha_survey_no=?", [$dist, $subdiv, $cir, $mouza, $lot, $vill, $bhunaksha_survey_no])->result();
+        if(!empty($checkSplitted)) {
+            return [
+                'status' => 'n',
+                'msg' => 'Bhunaksha Survey No Already used for dag no '. $checkSplitted[0]->dag_no.' and part dag no '.$checkSplitted[0]->survey_no.' of this village',
+            ];
+        }
 
         //check in chitha_basic_splitted_dags
         $checkSplitted = $this->db->query("SELECT dag_no FROM chitha_basic_splitted_dags WHERE dist_code=? AND subdiv_code=? AND cir_code=? AND mouza_pargona_code=? AND lot_no=? AND vill_townprt_code=? AND (dag_no=? OR survey_no=?)", [$dist, $subdiv, $cir, $mouza, $lot, $vill, $split_dag, $split_dag])->result();

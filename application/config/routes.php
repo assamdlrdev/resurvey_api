@@ -91,6 +91,9 @@ $route['get-circle-resurvey-dashboard'] = 'Api/ResurveyReportController/getResur
 $route['get_co_mut_cases'] = 'Api/MutationDataController/getCOMutCases';
 $route['get_co_case'] = 'Api/MutationDataController/getCoCase';
 $route['submit_co_case'] = 'Api/MutationDataController/submitCase';
+$route['get_co_strikeout_cases'] = 'Api/StrikeOutController/getCoStrikeoutCases';
+$route['get_co_strikeout_case'] = 'Api/StrikeOutController/getCoStrikeoutCase';
+$route['co_strikeout_submit'] = 'Api/StrikeOutController/coFinalSubmit';
 
 //lm routes
 $route['get-lm-resurvey-dashboard'] = 'Api/ResurveyReportController/getResurveyLmDashData';
@@ -105,6 +108,10 @@ $route['submit_applicant'] = 'Api/MutationDataController/submitApplicant';
 $route['get_lm_pattadar_dags'] = 'Api/MutationDataController/getPattadarDags';
 $route['lm_mut_submit'] = 'Api/MutationDataController/submitLmMutation';
 $route['get_lm_mut_cases'] = 'Api/MutationDataController/getLmMutCases';
+$route['get_lm_strike_dags'] = 'Api/StrikeOutController/getLmStrikeDags';
+$route['get_lm_strike_dag_data'] = 'Api/StrikeOutController/getLmStrikeDagData';
+$route['lm_strikeout_submit'] = 'Api/StrikeOutController/getLmStrikeoutSubmit';
+$route['get_lm_strikeout_cases'] = 'Api/StrikeOutController/getLmStrikeoutCases';
 
 
 
@@ -127,6 +134,14 @@ $route['api/report/collection'] = 'Api/ReportApiController/collection_report';
 
 //maps api
 $route['api/report/village_map_data'] = 'Api/ReportApiController/get_village_map_data';
+
+//user management
+$route['api/users/create'] = 'Api/UserManagementController/create';
+$route['api/users/list']   = 'Api/UserManagementController/list';
+$route['api/users/(:num)'] = 'Api/UserManagementController/show/$1';
+$route['api/users/(:num)/update']['post']  = 'Api/UserManagementController/update/$1';
+$route['api/designations']['get'] = 'Api/UserManagementController/designations_by_role';
+$route['api/users/change-password']['post'] = 'Api/UserManagementController/change_password';
 
 
 

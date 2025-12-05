@@ -180,7 +180,7 @@ class ReportApiController extends CI_Controller
         $map_geojon_decoded = json_decode($map_geojon);
         $response = [
             'status' => 'y',
-            'msg' => 'Successfully retrieved data!',
+            'msg' => $map_geojon_decoded->features ? 'Successfully retrieved data!' : 'No Data Found!',
             'map_geojson' => $map_geojon_decoded->features ? $map_geojon_decoded : ''
         ];
         $this->output->set_status_header(200);
