@@ -166,7 +166,7 @@ ADD COLUMN updated_by VARCHAR(10);
 ALTER TABLE chitha_basic_splitted_dags
 ADD COLUMN  updated_at TIMESTAMP DEFAULT NOW();
 
-<<<<<<< HEAD
+
 
 ALTER TABLE public.splitted_dags_possessors
 ADD COLUMN email VARCHAR(255),
@@ -398,3 +398,277 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.supportive_document
     OWNER to postgres;
+
+
+-- SEQUENCE: public.seq_max_misc
+-- DROP SEQUENCE IF EXISTS public.seq_max_misc;
+CREATE SEQUENCE IF NOT EXISTS public.seq_max_misc
+    INCREMENT 1
+    START 1600
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
+ALTER SEQUENCE public.seq_max_misc
+    OWNER TO postgres;
+
+
+ALTER TABLE public.misc_case_first_party
+ADD COLUMN self_declaration json,
+ADD COLUMN auth_type character varying (20),
+ADD COLUMN id_ref_no character varying (50),
+ADD COLUMN photo character varying (200)
+
+ALTER TABLE public.misc_case_first_party
+ALTER COLUMN misc_case_no TYPE character varying (50);
+
+ALTER TABLE public.misc_case_scnd_party
+ALTER COLUMN misc_case_no TYPE character varying (50);
+
+ALTER TABLE public.misc_case_process_reports
+ALTER COLUMN misc_case_no TYPE character varying (50);
+
+-- Table: public.t_chitha_rmk_ordbasic
+
+-- DROP TABLE IF EXISTS public.t_chitha_rmk_ordbasic;
+
+CREATE TABLE IF NOT EXISTS public.t_chitha_rmk_ordbasic
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    dag_no character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    year_no character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    petition_no bigint NOT NULL,
+    ord_no character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    ord_date timestamp without time zone NOT NULL,
+    ord_type_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    case_no character varying(40) COLLATE pg_catalog."default",
+    ord_on_gl_type character varying(2) COLLATE pg_catalog."default",
+    ord_passby_sign_yn character varying(1) COLLATE pg_catalog."default" NOT NULL,
+    ord_passby_desig character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    ord_ref_let_no character varying(45) COLLATE pg_catalog."default",
+    lm_code character varying(5) COLLATE pg_catalog."default",
+    lm_sign_yn character varying(3) COLLATE pg_catalog."default",
+    lm_sign_date timestamp without time zone,
+    sk_code character varying(5) COLLATE pg_catalog."default",
+    sk_sign_yn character varying(1) COLLATE pg_catalog."default",
+    sk_sign_date timestamp without time zone,
+    co_code character varying(5) COLLATE pg_catalog."default",
+    co_sign_yn character varying(1) COLLATE pg_catalog."default" NOT NULL,
+    co_ord_date timestamp without time zone,
+    m_dag_area_b smallint,
+    m_dag_area_k smallint,
+    m_dag_area_lc numeric,
+    m_dag_area_g numeric,
+    m_dag_area_kr smallint,
+    area_left_b smallint,
+    area_left_k smallint,
+    area_left_lc numeric,
+    area_left_g numeric,
+    area_left_kr smallint,
+    wrt_order1 character varying(40) COLLATE pg_catalog."default",
+    wrt_order2 character varying(40) COLLATE pg_catalog."default",
+    wrt_order3 character varying(40) COLLATE pg_catalog."default",
+    wrt_order4 character varying(40) COLLATE pg_catalog."default",
+    wrt_order5 character varying(40) COLLATE pg_catalog."default",
+    ord_impli_flag character(1) COLLATE pg_catalog."default",
+    ord_impli_date timestamp without time zone,
+    iscorrected_inco character(1) COLLATE pg_catalog."default",
+    iscorrected_inco_date timestamp without time zone,
+    iscorrected_rkg_record character(1) COLLATE pg_catalog."default",
+    iscorrected_rkg_date timestamp without time zone,
+    isdataposted_torkg_db character(1) COLLATE pg_catalog."default",
+    isorder_cancelled character(1) COLLATE pg_catalog."default",
+    ifyes_reason1 character varying(100) COLLATE pg_catalog."default",
+    ifyes_reason2 character varying(100) COLLATE pg_catalog."default",
+    ifyes_reason3 character varying(100) COLLATE pg_catalog."default",
+    make_mdb character(1) COLLATE pg_catalog."default",
+    new_dag_no character varying(12) COLLATE pg_catalog."default",
+    min_revenue numeric,
+    map_partition character varying(2) COLLATE pg_catalog."default",
+    noc_no character varying(50) COLLATE pg_catalog."default",
+    noc_date date,
+    CONSTRAINT t_chitha_rmk_ordbasic_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, year_no, petition_no, ord_no, ord_date, ord_type_code)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.t_chitha_rmk_ordbasic
+    OWNER to postgres;
+
+
+-- Table: public.t_chitha_rmk_infavor_of
+
+-- DROP TABLE IF EXISTS public.t_chitha_rmk_infavor_of;
+
+CREATE TABLE IF NOT EXISTS public.t_chitha_rmk_infavor_of
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    dag_no character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    year_no character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    petition_no bigint NOT NULL,
+    patta_type_code character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    patta_no character varying(20) COLLATE pg_catalog."default" NOT NULL,
+    ord_no character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    ord_date timestamp without time zone NOT NULL,
+    pdar_id smallint,
+    infavor_of_id smallint NOT NULL,
+    infavor_of_name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    infavor_of_guardian character varying(100) COLLATE pg_catalog."default",
+    infav_of_guar_relation character(1) COLLATE pg_catalog."default",
+    infavor_of_add1 character varying(100) COLLATE pg_catalog."default",
+    infavor_of_add2 character varying(100) COLLATE pg_catalog."default",
+    by_right_of character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    land_area_b smallint NOT NULL,
+    land_area_k smallint NOT NULL,
+    land_area_lc numeric NOT NULL,
+    land_area_g numeric NOT NULL,
+    land_area_kr smallint,
+    revenue numeric NOT NULL,
+    reg_deal_no character varying(30) COLLATE pg_catalog."default",
+    reg_date timestamp without time zone,
+    sub_reg_office character varying(50) COLLATE pg_catalog."default",
+    new_dag_no character varying(12) COLLATE pg_catalog."default",
+    new_patta_no character varying(20) COLLATE pg_catalog."default",
+    iscorrected_inco character(1) COLLATE pg_catalog."default",
+    iscorrected_inco_date timestamp without time zone,
+    iscorrected_rkg_record character(1) COLLATE pg_catalog."default",
+    iscorrected_rkg_date timestamp without time zone,
+    infavor_is_copdar character(1) COLLATE pg_catalog."default",
+    make_mdb character(1) COLLATE pg_catalog."default",
+    new_pattadar character(1) COLLATE pg_catalog."default",
+    infavor_of_corrected_name character varying(100) COLLATE pg_catalog."default",
+    pdar_strike character varying(1) COLLATE pg_catalog."default",
+    infavor_of_gender character(1) COLLATE pg_catalog."default",
+    infavor_of_minor_yn character(1) COLLATE pg_catalog."default",
+    infavor_of_minor_dob timestamp without time zone,
+    infavor_of_mother character varying(100) COLLATE pg_catalog."default",
+    pdar_pan_no character varying(20) COLLATE pg_catalog."default",
+    pdar_citizen_no character varying(20) COLLATE pg_catalog."default",
+    pdar_aadharno character varying(20) COLLATE pg_catalog."default",
+    pdar_mobile character varying(20) COLLATE pg_catalog."default",
+    pdar_nrcno character varying(20) COLLATE pg_catalog."default",
+    self_declaration json,
+    auth_type character varying(20) COLLATE pg_catalog."default",
+    id_ref_no character varying(50) COLLATE pg_catalog."default",
+    photo character varying(200) COLLATE pg_catalog."default",
+    pdar_name_eng character varying(150) COLLATE pg_catalog."default",
+    pdar_guard_eng character varying(150) COLLATE pg_catalog."default",
+    CONSTRAINT t_chitha_rmk_infavor_of_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, ord_no, ord_date, infavor_of_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.t_chitha_rmk_infavor_of
+    OWNER to postgres;
+
+
+-- Table: public.t_chitha_rmk_other_opp_party
+
+-- DROP TABLE IF EXISTS public.t_chitha_rmk_other_opp_party;
+
+CREATE TABLE IF NOT EXISTS public.t_chitha_rmk_other_opp_party
+(
+    dist_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    subdiv_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    cir_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    mouza_pargona_code character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    lot_no character varying(2) COLLATE pg_catalog."default" NOT NULL,
+    vill_townprt_code character varying(5) COLLATE pg_catalog."default" NOT NULL,
+    dag_no character varying(12) COLLATE pg_catalog."default" NOT NULL,
+    ord_no character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    ord_date timestamp without time zone NOT NULL,
+    name_for_id smallint NOT NULL,
+    name_for character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    name_for_guardian character varying(100) COLLATE pg_catalog."default",
+    name_for_guar_relation character varying(1) COLLATE pg_catalog."default",
+    purpose character varying(200) COLLATE pg_catalog."default",
+    against_which_order character varying(50) COLLATE pg_catalog."default",
+    case_type_code character varying(2) COLLATE pg_catalog."default",
+    name_for_land_code character varying(2) COLLATE pg_catalog."default",
+    since_date timestamp without time zone,
+    name_for_land_b smallint NOT NULL,
+    name_for_land_k smallint NOT NULL,
+    name_for_land_lc numeric NOT NULL,
+    name_for_land_g numeric NOT NULL,
+    name_for_land_kr smallint,
+    iscorrected_inco character(1) COLLATE pg_catalog."default",
+    iscorrected_inco_date timestamp without time zone,
+    iscorrected_rkg_record character(1) COLLATE pg_catalog."default",
+    iscorrected_rkg_date timestamp without time zone,
+    case_no character varying(50) COLLATE pg_catalog."default",
+    CONSTRAINT t_chitha_rmk_other_opp_party_pkey PRIMARY KEY (dist_code, subdiv_code, cir_code, mouza_pargona_code, lot_no, vill_townprt_code, dag_no, ord_no, ord_date, name_for_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.t_chitha_rmk_other_opp_party
+    OWNER to postgres;
+
+
+ALTER TABLE public.chitha_rmk_infavor_of
+ADD COLUMN self_declaration json,
+ADD COLUMN auth_type character varying (20),
+ADD COLUMN id_ref_no character varying (50),
+ADD COLUMN photo character varying (200),
+ADD COLUMN pdar_name_eng character varying (150),
+ADD COLUMN pdar_guard_eng character varying (150)
+//db-locmaster
+
+CREATE TABLE survey_designations (
+    id SERIAL PRIMARY KEY,                -- Auto-increment (MySQL: INT AUTO_INCREMENT)
+    designation_code VARCHAR(5) NOT NULL, -- e.g., 01, 02, 03
+    designation_name VARCHAR(100) NOT NULL
+);
+
+INSERT INTO survey_designations (designation_code, designation_name) VALUES
+('01', 'Supervisor'),
+('02', 'Traverse GI'),
+('03', 'Traverse GII'),
+('04', 'Traverse GIII'),
+('05', 'Head Computor'),
+('06', 'Computor GI'),
+('07', 'Computor GII'),
+('08', 'Senior PTS'),
+('09', 'PTS'),
+('10', 'GIS Assistant'),
+('11', 'GIS Analyst');
+
+ALTER TABLE dataentryusers
+ADD COLUMN designation VARCHAR(2) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN email VARCHAR(255) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN created_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_by VARCHAR(45) NULL;
+
+ALTER TABLE dataentryusers
+ADD COLUMN updated_on timestamp without time zone NULL;
+
+//District dbs
+CREATE EXTENSION postgis;
+CREATE TABLE geo_data (
+    id SERIAL PRIMARY KEY,
+    geojson JSONB,  -- Store the raw GeoJSON data
+    geom GEOMETRY(MultiPolygon, 4326),  -- Store the geometry in PostGIS format
+    dist_code VARCHAR(2),  -- Reference ID: District code
+    subdiv_code VARCHAR(2),  -- Reference ID: Subdivision code
+    cir_code VARCHAR(2),  -- Reference ID: Circle code
+    mouza_pargona_code VARCHAR(2),  -- Reference ID: Mouza/Pargona code
+    lot_no VARCHAR(2),  -- Reference ID: Lot number
+    vill_townprt_code VARCHAR(5),  -- Reference ID: Village/Town part code
+    dag_no VARCHAR(10),  -- Reference ID: Dag number
+    status VARCHAR(1)  -- 0,1
+);

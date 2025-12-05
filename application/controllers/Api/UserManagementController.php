@@ -1,7 +1,8 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class UserManagementController extends CI_Controller {
+class UserManagementController extends CI_Controller
+{
     public function __construct()
     {
         parent::__construct();
@@ -10,7 +11,7 @@ class UserManagementController extends CI_Controller {
         $this->load->model('UserModel');
         $this->load->model('Api/LocationModel');
         $this->load->library('form_validation');
-        $this->load->helper(array('url','security'));
+        $this->load->helper(array('url', 'security'));
         $this->load->model('Api/Designation_model');
 
         // Force JSON responses
@@ -39,6 +40,7 @@ class UserManagementController extends CI_Controller {
         // Basic optional API key check (replace/extend with real auth)
         // $api_key = $this->input->get_request_header('X-API-Key', TRUE);
         // if ($api_key !== 'your-api-key-here') { http_response_code(401); echo json_encode(['status'=>0,'message'=>'Unauthorized']); return; }
+        $usercode  =  $this->jwt_data->usercode;
 
         // Read JSON body if present
         $raw = trim(file_get_contents("php://input"));
@@ -63,7 +65,7 @@ class UserManagementController extends CI_Controller {
             'username'    => isset($data['username'])    ? $this->security->xss_clean($data['username'])    : null,
             'password'    => isset($data['password'])    ? $data['password'] : null, // don't xss_clean password
             'name'        => isset($data['name'])        ? $this->security->xss_clean($data['name'])        : null,
-            'phone_no'    => isset($data['phone_no'])    ? $this->security->xss_clean($data['phone_no'])    : null,
+            'mobile_no'    => isset($data['mobile_no'])    ? $this->security->xss_clean($data['mobile_no'])    : null,
             'email'   => isset($data['email'])   ? $this->security->xss_clean($data['email'])   : null,
             'designation'   => isset($data['designation'])   ? $this->security->xss_clean($data['designation'])   : null,
         ];
@@ -72,23 +74,28 @@ class UserManagementController extends CI_Controller {
         $this->form_validation->reset_validation();
         $this->form_validation->set_data($input);
 
-        $this->form_validation->set_rules('dist_code', 'District code', 'trim|required|alpha_numeric');
-        // $this->form_validation->set_rules('subdiv_code', 'Subdivision code', 'trim|required|alpha_numeric');
-        $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|required|regex_match[/^[0-9\-]+$/]');
+        // dist_code and cir_code required only when user_role == 15
+        $isCircleRequired = ((string)(int)$input['user_role'] !== '15');
+
+        if ($isCircleRequired) {
+            $this->form_validation->set_rules('dist_code', 'District code', 'trim|required|alpha_numeric');
+            $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|required|regex_match[/^[0-9\-]+$/]');
+            $parts = explode("-", $input['cir_code']);
+            $subdiv  = $parts[1];   // 01
+            $cir     = $parts[2];   // 01
+        } else {
+            $this->form_validation->set_rules('dist_code', 'District code', 'trim|alpha_numeric');
+            $this->form_validation->set_rules('cir_code', 'Circle code', 'trim|regex_match[/^[0-9\-]+$/]');
+        }
         $this->form_validation->set_rules('user_role', 'User role', 'trim|required|alpha_numeric');
         $this->form_validation->set_rules('username', 'Username', 'trim|required|min_length[3]|max_length[50]|alpha_numeric|callback__username_unique_api');
         $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[6]');
         $this->form_validation->set_rules('name', 'Full name', 'trim|required|max_length[255]');
-        $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|required|numeric|exact_length[10]|callback_phone_unique');
+        $this->form_validation->set_rules('mobile_no', 'Phone no', 'trim|required|numeric|exact_length[10]|callback_phone_unique');
         $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
         $this->form_validation->set_rules('designation', 'Designation Code', 'trim|regex_match[/^[0-9]{2}$/]');
 
-        $parts = explode("-", $input['cir_code']);
 
-        // Result:
-        // $dist = $parts[0];   // 17
-        $subdiv  = $parts[1];   // 01
-        $cir     = $parts[2];   // 01
 
         if ($this->form_validation->run() === FALSE) {
             http_response_code(422);
@@ -102,20 +109,27 @@ class UserManagementController extends CI_Controller {
 
         // Prepare insert data (hash password)
         $insert = [
-            'dist_code'   => $input['dist_code'],
-            'subdiv_code' => $subdiv,
-            'cir_code'    => $cir,
             'user_role'   => $input['user_role'],
             'username'    => $input['username'],
             'password'    => sha1($input['password']),
             'name'        => $input['name'],
-            'phone_no'    => $input['phone_no'],
-            'mobile_no'   => $input['phone_no'],
+            // 'mobile_no'    => $input['mobile_no'],
+            'mobile_no'   => $input['mobile_no'],
             'email'       => $input['email'],
             'designation' => $input['designation'],
             'user_status' => 'E',
             'date_of_creation'  => date('Y-m-d H:i:s'),
+            'created_by' => $usercode
         ];
+        if ($isCircleRequired) {
+            $insert['dist_code'] = $input['dist_code'];
+            $insert['subdiv_code'] = $subdiv;
+            $insert['cir_code'] = $cir;
+        }else{
+            $insert['dist_code'] = '00';
+            $insert['subdiv_code'] = '00';
+            $insert['cir_code'] = '00';
+        }
 
         // transaction
         $this->db->trans_begin();
@@ -167,7 +181,7 @@ class UserManagementController extends CI_Controller {
     public function phone_unique($phone)
     {
         $exists = $this->db
-            ->where('phone_no', $phone)
+            ->where('mobile_no', $phone)
             ->get('dataentryusers')
             ->row();
 
@@ -210,7 +224,7 @@ class UserManagementController extends CI_Controller {
 
     public function list()
     {
-        $user_type  =  $this->jwt_data->usertype; 
+        $user_type  =  $this->jwt_data->usertype;
         // $user = $this->Dataentryuser_model->get_user_by_id($jwt['user_id']);
         // print_r($this->jwt_data->usertype);
         // print(json_decode($this->session->userdata));
@@ -224,7 +238,7 @@ class UserManagementController extends CI_Controller {
         $sort_dir = ($sort_dir === 'desc') ? 'desc' : 'asc';
 
         // sanitize sort_by to allowed columns (prevent SQL injection)
-        $allowed_sort = ['serial_no','username','name','email','phone_no','user_role','dist_code','subdiv_code','cir_code','designation'];
+        $allowed_sort = ['serial_no', 'username', 'name', 'email', 'mobile_no', 'user_role', 'dist_code', 'subdiv_code', 'cir_code', 'designation'];
         if (! in_array($sort_by, $allowed_sort, true)) {
             $sort_by = 'serial_no';
         }
@@ -241,20 +255,20 @@ class UserManagementController extends CI_Controller {
         }
 
         // total count
-        $total = $this->Dataentryuser_model->count_users($filters,$user_type);
+        $total = $this->Dataentryuser_model->count_users($filters, $user_type);
 
         // fetch data
-        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir,$user_type);
+        $users = $this->Dataentryuser_model->get_users_paginated($limit, $offset, $filters, $sort_by, $sort_dir, $user_type);
         // print_r($users);
 
         // map DB columns to desired json keys
-        $data = array_map(function($u) {
+        $data = array_map(function ($u) {
             return [
                 'id' => (int)$u->serial_no,
                 'username' => $u->username,
                 'name' => $u->name,
                 'email' => isset($u->email) ? $u->email : null,
-                'phone_no' => $u->phone_no,
+                'mobile_no' => $u->mobile_no,
                 'role'      => $this->UserModel->getRoleNameFromCode($u->user_role),
                 // 'district_code' => $u->dist_code,
                 'district' => $this->LocationModel->getDistrict($u->dist_code),
@@ -301,13 +315,13 @@ class UserManagementController extends CI_Controller {
             }
 
             // role name
-            $roleName = $this->UserModel->getRoleNameFromCode($user->user_role);
+            $roleName = $this->UserModel->getRoleFullNameFromCode($user->user_role);
 
             // district object
             $districtInfo = $this->LocationModel->getDistrict(
                 $user->dist_code
             );
-            
+
             // circle object
             $circleInfo = $this->LocationModel->getCircle(
                 $user->dist_code,
@@ -321,8 +335,9 @@ class UserManagementController extends CI_Controller {
                 'username'  => $user->username,
                 'name'      => $user->name,
                 'email'     => $user->email ?? null,
-                'phone_no'  => $user->phone_no,
-                'role'      => $roleName,
+                'mobile_no'  => $user->mobile_no,
+                'role_name'      => $roleName,
+                'role'      => $user->user_role,
 
                 // object, not string
                 'district' => $districtInfo,
@@ -333,7 +348,6 @@ class UserManagementController extends CI_Controller {
                 'status' => 1,
                 'data'   => $data
             ]);
-
         } catch (Throwable $e) {
             log_message('error', 'UserController::show error: ' . $e->getMessage());
             http_response_code(500);
@@ -345,18 +359,19 @@ class UserManagementController extends CI_Controller {
     }
 
     /**
-     * Update user (only: name, email, phone_no, password)
+     * Update user (only: name, email, mobile_no, password)
      * Accepts JSON body or form-encoded data.
      * URL: /index.php/api/users/{id}
      */
     public function update($id = null)
     {
         header('Content-Type: application/json; charset=utf-8');
+        $usercode  =  $this->jwt_data->usercode;
 
         // basic id check
         if ($id === null || !ctype_digit((string)$id)) {
             http_response_code(400);
-            echo json_encode(['status'=>0,'message'=>'Invalid user id']);
+            echo json_encode(['status' => 0, 'message' => 'Invalid user id']);
             return;
         }
 
@@ -377,8 +392,11 @@ class UserManagementController extends CI_Controller {
         $input = [
             'name'     => isset($data['name']) ? $this->security->xss_clean($data['name']) : null,
             'email'    => isset($data['email']) ? $this->security->xss_clean($data['email']) : null,
-            'phone_no' => isset($data['phone_no']) ? $this->security->xss_clean($data['phone_no']) : null,
+            'mobile_no' => isset($data['mobile_no']) ? $this->security->xss_clean($data['mobile_no']) : null,
             'password' => isset($data['password']) ? $data['password'] : null, // do NOT xss_clean password
+            'district' => isset($data['district']) ? $this->security->xss_clean($data['district']) : null,
+            'circle'   => isset($data['circle']) ? $this->security->xss_clean($data['circle']) : null,
+            'subdivision'   => isset($data['subdivision']) ? $this->security->xss_clean($data['subdivision']) : null
         ];
 
         // load form validation & set data
@@ -389,7 +407,7 @@ class UserManagementController extends CI_Controller {
         // rules: only validate if value provided (optional fields)
         $this->form_validation->set_rules('name', 'Full name', 'trim|max_length[255]');
         $this->form_validation->set_rules('email', 'Email', 'trim|valid_email');
-        $this->form_validation->set_rules('phone_no', 'Phone no', 'trim|numeric|exact_length[10]');
+        $this->form_validation->set_rules('mobile_no', 'Phone no', 'trim|numeric|exact_length[10]');
         $this->form_validation->set_rules('password', 'Password', 'trim|min_length[6]');
 
         // run basic validation
@@ -410,7 +428,7 @@ class UserManagementController extends CI_Controller {
         $existing = $this->Dataentryuser_model->get_user_by_id((int)$id);
         if (!$existing) {
             http_response_code(404);
-            echo json_encode(['status'=>0,'message'=>'User not found']);
+            echo json_encode(['status' => 0, 'message' => 'User not found']);
             return;
         }
 
@@ -423,15 +441,15 @@ class UserManagementController extends CI_Controller {
             }
         }
 
-        if (!empty($input['phone_no'])) {
-            if ($this->Dataentryuser_model->phone_exists_except($input['phone_no'], (int)$id)) {
-                $errors['phone_no'] = 'Phone number is already in use.';
+        if (!empty($input['mobile_no'])) {
+            if ($this->Dataentryuser_model->phone_exists_except($input['mobile_no'], (int)$id)) {
+                $errors['mobile_no'] = 'Phone number is already in use.';
             }
         }
 
         if (!empty($errors)) {
             http_response_code(422);
-            echo json_encode(['status'=>0,'message'=>'Validation failed','errors'=>$errors]);
+            echo json_encode(['status' => 0, 'message' => 'Validation failed', 'errors' => $errors]);
             return;
         }
 
@@ -439,19 +457,30 @@ class UserManagementController extends CI_Controller {
         $update = [];
         if ($input['name'] !== null)     $update['name'] = $input['name'];
         if ($input['email'] !== null)    $update['email'] = $input['email'];
-        if ($input['phone_no'] !== null) {
-            $update['phone_no'] = $input['phone_no'];
+        if ($input['mobile_no'] !== null) {
+            // $update['mobile_no'] = $input['mobile_no'];
             // optional: mirror mobile_no as in create
-            $update['mobile_no'] = $input['phone_no'];
+            $update['mobile_no'] = $input['mobile_no'];
         }
         if (!empty($input['password'])) {
             $update['password'] = password_hash($input['password'], PASSWORD_DEFAULT);
         }
+        if (!empty($input['district'])) {
+            $update['dist_code'] = $input['district'];
+        }
+        if (!empty($input['circle'])) {
+            $update['cir_code'] = $input['circle'];
+        }
+        if (!empty($input['subdivision'])) {
+            $update['subdiv_code'] = $input['subdivision'];
+        }
         if (empty($update)) {
             // nothing to update
-            echo json_encode(['status'=>1,'message'=>'No changes','data'=>[]]);
+            echo json_encode(['status' => 1, 'message' => 'No changes', 'data' => []]);
             return;
         }
+        $update['updated_by'] = $usercode;
+        $update['updated_on'] = date('Y-m-d H:i:s');
 
         // perform update inside transaction
         $this->db->trans_begin();
@@ -460,7 +489,7 @@ class UserManagementController extends CI_Controller {
         if ($this->db->trans_status() === FALSE || !$ok) {
             $this->db->trans_rollback();
             http_response_code(500);
-            echo json_encode(['status'=>0,'message'=>'Failed to update user']);
+            echo json_encode(['status' => 0, 'message' => 'Failed to update user']);
             return;
         }
 
@@ -479,13 +508,13 @@ class UserManagementController extends CI_Controller {
             'username' => $user->username,
             'name'     => $user->name,
             'email'    => $user->email ?? null,
-            'phone_no' => $user->phone_no,
+            'mobile_no' => $user->mobile_no,
             'role'     => $roleName,
             'district' => $districtInfo,
             'circle'   => $circleInfo
         ];
 
-        echo json_encode(['status'=>1,'message'=>'User updated','data'=>$respData]);
+        echo json_encode(['status' => 1, 'message' => 'User updated', 'data' => $respData]);
     }
 
 
@@ -508,9 +537,9 @@ class UserManagementController extends CI_Controller {
         $role = (string)(int)$role;
 
         $role_map = [
-            '10' => ['01','02','03','04','05','06','07','08','09'],
+            '10' => ['01', '02', '03', '04', '05', '06', '07', '08', '09'],
             '14' => ['10'],
-            '15' => ['10','11'],
+            '15' => ['10', '11'],
         ];
 
         if (!isset($role_map[$role]) || empty($role_map[$role])) {
@@ -520,10 +549,10 @@ class UserManagementController extends CI_Controller {
 
         $codes = $role_map[$role];
 
-        
+
         $rows = $this->Designation_model->get_by_codes($codes);
 
-        $result = array_map(function($r) {
+        $result = array_map(function ($r) {
             return [
                 'designation_code' => $r['designation_code'],
                 'designation_name' => $r['designation_name']
