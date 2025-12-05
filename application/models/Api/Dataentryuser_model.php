@@ -151,5 +151,14 @@ class Dataentryuser_model extends CI_Model {
         return $q->num_rows() > 0;
     }
 
+    public function get_user_by_username($username)
+    {
+        $this->db->from($this->table);
+        $this->db->where('username', $username);
+        $this->db->limit(1);
+        $q = $this->db->get();
+        return $q && $q->num_rows() > 0 ? $q->row() : null;
+    }
+
 
 }
